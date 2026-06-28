@@ -1,11 +1,11 @@
 {
-  "name": "to-let-server",
+  "name": "to-let-room-rentify-server",
   "version": "1.0.0",
   "description": "to-let : Your comfort stay on the way.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js",
+    "start": "node index.js",
     "dev": "nodemon index.js"
   },
   "author": "Pradum Sonkar",
