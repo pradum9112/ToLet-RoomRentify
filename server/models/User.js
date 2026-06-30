@@ -37,10 +37,6 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: null,
   },
-  facebookId: {
-    type: Number,
-    default: null,
-  },
   date: {
     type: Date,
     default: Date.now,

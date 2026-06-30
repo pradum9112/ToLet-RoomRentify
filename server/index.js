@@ -22,6 +22,14 @@ cloudinary.config({
 });
 
 // Available routes
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to ToLet-RoomRentify API Server!",
+    status: "Healthy",
+    author: "Pradum Sonkar",
+  });
+});
 app.use('/auth', require('./routes/auth'))
 app.use('/fogotpassword', require('./routes/forgotpass'));
 app.use('/oauth', require('./routes/oauth'));
