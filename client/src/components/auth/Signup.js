@@ -1,193 +1,154 @@
-import React, { useState, useEffect,useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from 'jwt-decode';
 import swal from "sweetalert";
 import TestimonialSlider from "../testimonial/TestimonialSlider";
 import { url } from "../../utils/Constants";
-import OAuth2Login from "react-simple-oauth2-login";
 import { UserContext } from "../../context/UserContext.jsx";
 
-const Signup = (props) => {
+const Signup = () => {
   const { setIslogin } = useContext(UserContext);
 
   const [credentials, setCredentials] = useState({
     fname: "",
     lname: "",
-    email: props.email,
+    email: "",
     password: "",
     phone: "",
-    authcode: null,
-    dest: "",
+    authcode: "",
   });
 
-  let history = useNavigate();
+  const navigate = useNavigate();
   const [sendOtp, setSendOtp] = useState(false);
-  const [googleID, setGoogleID] = useState(0);
+  const [googleID, setGoogleID] = useState(null);
   const [signUpReq, setSignUpReq] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const [facebookId, setFacebookId] = useState(0);
-  const [signUpFbReq, setSignUpFbReq] = useState(false);
-
-
-
-  ///////////////////////////////////////////google start/////////////////////////////////////////////////////////////////////
-
+  // Google Auth Setup
   useEffect(() => {
     if (localStorage.getItem("token")) {
-      history("/");
+      navigate("/");
     }
 
     /* global google */
-    const initGAuth = async () => {
-      await google.accounts.id.initialize({
-        client_id:
-          "556182822054-ais047hrpg45kcb2o0b9v682s66hn69c.apps.googleusercontent.com",
+    const initGAuth = () => {
+      google.accounts.id.initialize({
+        client_id: "556182822054-ais047hrpg45kcb2o0b9v682s66hn69c.apps.googleusercontent.com",
         callback: handleCallbackResponse,
       });
 
-      await google.accounts.id.renderButton(
+      google.accounts.id.renderButton(
         document.getElementById("googlebtn"),
-        {
-          theme: "none",
-          longtitle: true,
-        }
+        { theme: "outline", size: "large", longtitle: true }
       );
     };
 
     initGAuth();
-  }, []);
+  }, [navigate]);
 
-  /////////////////////////////////////////////gooogle end//////////////////////////////////////////////////////////////////////
-  ///////////////////////////for show password toggle_button start//////////////////////////////////////////////////////////////
-
-  const [showPassword, setShowPassword] = useState(false);
-
-  const togglePassword = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const handleShowPassword = () => {
-    return showPassword ? "text" : "password";
-  };
-
-  ///////////////////////////for show password toggle_button start//////////////////////////////////////////////////////////////
-
-  ////////////////////////////handle response google////////////////////////////////////////////////////////////////////////
-
+  // Google Callback
   const handleCallbackResponse = async (response) => {
-    // getting the jwt token and setting userObject as it response
-    // //console.log("JWT ID TOKEN: ", response.credential);
-    var userObject = await jwt_decode(response.credential);
-    setCredentials({
-      email: userObject.email,
-      fname: userObject.given_name,
-      lname: userObject.family_name,
-    });
-    setGoogleID(userObject.sub);
+    try {
+      const userObject = jwt_decode(response.credential);
 
-    const res = await fetch(`${url}/oauth/google/signin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify({ googleId: userObject.sub , email: userObject.email}),
-      mode: "cors",
-      referrerPolicy: "origin-when-cross-origin",
-    });
-
-    const json = await res.json();
-
-    if (json.success === true) {
-      swal({
-        title: "Welcome!",
-        text: "Logged in Successfully",
-        icon: "success",
-        button: "Ok!",
+      setCredentials({
+        email: userObject.email,
+        fname: userObject.given_name,
+        lname: userObject.family_name,
       });
-      await localStorage.setItem("token", json.authToken);
-      await localStorage.setItem("userInfo", JSON.stringify(json));
-      setIslogin(true);
-      history("/");
-    } else if (json.requireSignup === false && json.success === false) {
+      setGoogleID(userObject.sub);
+
+      const res = await fetch(`${url}/oauth/google/signin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({
+          googleId: userObject.sub,
+          email: userObject.email,
+        }),
+        mode: "cors",
+      });
+
+      const json = await res.json();
+
+      if (json.success === true) {
+        swal({
+          title: "Welcome!",
+          text: "Logged in Successfully",
+          icon: "success",
+          button: "Ok!",
+        });
+        localStorage.setItem("token", json.authToken);
+        localStorage.setItem("userInfo", JSON.stringify(json));
+        setIslogin(true);
+        navigate("/");
+      } else {
+        setSignUpReq(true);
+      }
+    } catch (err) {
       swal({
         title: "Try Again!",
-        text: "Try using diffrent way, user already exist!",
+        text: "Server error!",
         icon: "error",
-        button: "Ok!",
       });
-    } else {
-      setSignUpReq(true);
-      history("/signup");
     }
   };
 
-  ////////////////////////////////////handle response google ended////////////////////////////////////////
-  ////////////////////////////////////handle response facebook start//////////////////////////////////////
+  // Google Signup
+  const handleGoogleSubmit = async (event) => {
+    event.preventDefault();
 
-  const handleFacebookResponse = async (response) => {
+    if (!credentials.phone || credentials.phone.length < 10) {
+      swal({ title: "Error", text: "Valid phone number is required", icon: "error" });
+      return;
+    }
+
     try {
-    const accessToken = response.access_token;
-    const result = await fetch(
-      `https://graph.facebook.com/v12.0/me?fields=id,name,email,picture.type(large)&access_token=${accessToken}`
-    );
-    const profile = await result.json();
-
-    const fullName = profile.name;
-    const [firstName, lastName] = fullName.split(" ");
-
-    setCredentials({
-      fname: firstName,
-      lname: lastName,
-      email: profile.email,
-    });
-    setFacebookId(profile.id);
-
-    const res = await fetch(`${url}/oauth/facebook/signin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify({ facebookId: profile.id }),
-      mode: "cors",
-      referrerPolicy: "origin-when-cross-origin",
-    });
-
-    const json = await res.json();
-
-    if (json.requireSignup === false) {
-      swal({
-        title: "Welcome!",
-        text: "Logged in Successfully",
-        icon: "success",
-        button: "Ok!",
+      const response = await fetch(`${url}/oauth/google/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({
+          fname: credentials.fname,
+          lname: credentials.lname,
+          phone: credentials.phone,
+          email: credentials.email,
+          googleId: googleID,
+        }),
+        mode: "cors",
       });
-      await localStorage.setItem("token", json.authToken);
-      await localStorage.setItem("userInfo",JSON.stringify(json));
-      history("/");
-    } else {
+
+      const json = await response.json();
+
+      if (json.success === true) {
+        swal({
+          title: "Success!",
+          text: "Account Created Successfully",
+          icon: "success",
+        });
+        localStorage.setItem("token", json.authToken);
+        localStorage.setItem("userInfo", JSON.stringify(json));
+        setIslogin(true);
+        navigate("/");
+      } else {
+        swal({
+          title: "Try Again!",
+          text: json.error || "Failed to create account",
+          icon: "error",
+        });
+      }
+    } catch (err) {
       swal({
-        title: "Verified!",
-        text: "Continue to Register",
-        icon: "success",
-        button: "Continue!",
+        title: "Try Again!",
+        text: "Server error!",
+        icon: "error",
       });
-      setSignUpFbReq(true);
-      history("/signup");
     }
-  } catch (err) {
-    swal({
-      title: "Try Again!",
-      text: "server is down!",
-      icon: "error",
-      button: "Ok!",
-    });
-  }
   };
-
-  /////////////////////////////////////handle facebook ended//////////////////////////////////////////////
 
   const onChange = (event) => {
     if (event.target.name === "phone") {
@@ -204,117 +165,42 @@ const Signup = (props) => {
     }
   };
 
-  //for Google submit
-  const handleGoogleSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const response = await fetch(`${url}/oauth/google/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({
-          fname: credentials.fname,
-          lname: credentials.lname,
-          phone: credentials.phone,
-          email: credentials.email,
-          googleId: googleID,
-        }),
-        mode: "cors",
-        referrerPolicy: "origin-when-cross-origin",
-      });
-      const json = await response.json();
+  // Password Toggle
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePassword = () => setShowPassword(!showPassword);
 
-      if (json.success === true) {
-        swal({
-          title: "Success!",
-          text: "Account Created Successfully",
-          icon: "success",
-          button: "Ok!",
+  // Send OTP
+  const sendMail = async (event) => {
+    event.preventDefault();
+    if (validateForm()) {
+      try {
+        const response = await fetch(`${url}/auth/signup/email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: credentials.email }),
         });
-        await localStorage.setItem("token", json.authToken);
-        await localStorage.setItem("userInfo",JSON.stringify(json));
-        history("/");
-      } else {
-        swal({
-          title: "Try Again!",
-          text: "error",
-          icon: "error",
-          button: "Ok!",
-        });
+        const json = await response.json();
+
+        if (json.success) {
+          swal({ title: "Check your mail!", text: "Verification code sent!", icon: "success" });
+          setSendOtp(true);
+        } else {
+          swal({ title: "Try Again!", text: json.error || "Failed", icon: "error" });
+        }
+      } catch (err) {
+        swal({ title: "Try Again!", text: "Server error!", icon: "error" });
       }
-    } catch (err) {
-      swal({
-        title: "Try Again!",
-        text: "server routing error!",
-        icon: "error",
-        button: "Ok!",
-      });
     }
   };
 
-  //for Facebook submit
-  const handleFacebookSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const response = await fetch(`${url}/oauth/facebook/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify({
-          fname: credentials.fname,
-          lname: credentials.lname,
-          phone: credentials.phone,
-          email: credentials.email,
-          facebookId: facebookId,
-        }),
-        mode: "cors",
-        referrerPolicy: "origin-when-cross-origin",
-      });
-      const json = await response.json();
-
-      if (json.success === true) {
-        swal({
-          title: "Success!",
-          text: "Account Created Successfully",
-          icon: "success",
-          button: "Ok!",
-        });
-        await localStorage.setItem("token", json.authToken);
-        await localStorage.setItem("userInfo",JSON.stringify(json));
-        history("/");
-      } else {
-        swal({
-          title: "Try Again!",
-          text: "error",
-          icon: "error",
-          button: "Ok!",
-        });
-      }
-    } catch (err) {
-      swal({
-        title: "Try Again!",
-        text: "server is down!",
-        icon: "error",
-        button: "Ok!",
-      });
-    }
-  };
-
-  //for manually submitting form
+  // Verify OTP
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (validateMail()) {
       try {
         const response = await fetch(`${url}/auth/signup/email/verify`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             fname: credentials.fname,
             lname: credentials.lname,
@@ -323,423 +209,172 @@ const Signup = (props) => {
             password: credentials.password,
             authcode: Number(credentials.authcode),
           }),
-          mode: "cors",
-          referrerPolicy: "origin-when-cross-origin",
         });
         const json = await response.json();
 
-        if (json.success === true) {
-          swal({
-            title: "Success!",
-            text: "Account Created Successfully",
-            icon: "success",
-            button: "Ok!",
-          });
-          await localStorage.setItem("token", json.authToken);
-          await localStorage.setItem("userInfo",JSON.stringify(json));
-          history("/");
+        if (json.success) {
+          swal({ title: "Success!", text: "Account Created", icon: "success" });
+          localStorage.setItem("token", json.authToken);
+          localStorage.setItem("userInfo", JSON.stringify(json));
+          setIslogin(true);
+          navigate("/");
         } else {
-          swal({
-            title: "Try Again!",
-            text: "error",
-            icon: "error",
-            button: "Ok!",
-          });
+          swal({ title: "Try Again!", text: json.error || "Failed", icon: "error" });
         }
       } catch (err) {
-        swal({
-          title: "Try Again!",
-          text: "server is down!",
-          icon: "error",
-          button: "Ok!",
-        });
+        swal({ title: "Try Again!", text: "Server error!", icon: "error" });
       }
     }
-  };
-
-  //for sending OTP
-  const sendMail = async (event) => {
-    event.preventDefault();
-
-    if (validateForm()) {
-      try {
-        const response = await fetch(`${url}/auth/signup/email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-          body: JSON.stringify({ email: credentials.email }),
-          mode: "cors",
-          referrerPolicy: "origin-when-cross-origin",
-        });
-        const json = await response.json();
-
-        if (json.success === true) {
-          swal({
-            title: "Check your mail!",
-            text: "email sent successfully!",
-            icon: "success",
-            button: "Ok!",
-          });
-          setSendOtp(true);
-        } else {
-          swal({
-            title: "Try Again!",
-            text: "error",
-            icon: "error",
-            button: "Ok!",
-          });
-          setSendOtp(false);
-        }
-      } catch (err) {
-        swal({
-          title: "Try Again!",
-          text: "server is down!",
-          icon: "error",
-          button: "Ok!",
-        });
-      }
-    }
-  };
-
-  ///////////////////// validation code////////////////////////////////////////
-  //////////////////////// validation code/////////////////////////////////////
-
-  const validateMail = () => {
-    let errors = {};
-    let isValid = true;
-
-    if (!credentials.authcode) {
-      errors.authcode = "authcode is required";
-      isValid = false;
-    } else if (credentials.authcode?.length !== 6) {
-      errors.authcode = "authcode must be of 6 characters";
-      isValid = false;
-    }
-    setErrors(errors);
-    return isValid;
   };
 
   const validateForm = () => {
     let errors = {};
     let isValid = true;
 
-    if (!credentials.fname) {
-      errors.fname = "First Name is required";
-      isValid = false;
-    } else if (credentials.fname?.length < 2) {
-      errors.fname = "Name length atleast 2 char";
+    if (!credentials.fname || credentials.fname.length < 2) {
+      errors.fname = "First name must be at least 2 characters";
       isValid = false;
     }
-
-    if (!credentials.lname) {
-      errors.lname = "Last Name is required";
-      isValid = false;
-    } else if (credentials.lname?.length < 2) {
-      errors.lname = "Name length atleast 2 char";
+    if (!credentials.lname || credentials.lname.length < 2) {
+      errors.lname = "Last name must be at least 2 characters";
       isValid = false;
     }
-
-    if (!credentials.email) {
-      errors.email = "Email is required";
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(credentials.email)) {
-      errors.email = "Invalid email format";
+    if (!credentials.email || !/\S+@\S+\.\S+/.test(credentials.email)) {
+      errors.email = "Valid email is required";
       isValid = false;
     }
-
-    if (!credentials.phone) {
-      errors.phone = "Phone is required";
-      isValid = false;
-    } else if (!/^\d{10}$/.test(credentials.phone)) {
-      errors.phone = "Invalid phone number";
+    if (!credentials.phone || !/^\d{10}$/.test(credentials.phone)) {
+      errors.phone = "Valid 10-digit phone number is required";
       isValid = false;
     }
-
-    if (!credentials.password) {
-      errors.password = "Password is required";
-      isValid = false;
-    } else if (credentials.password?.length < 8) {
+    if (!credentials.password || credentials.password.length < 8) {
       errors.password = "Password must be at least 8 characters";
       isValid = false;
     }
+
     setErrors(errors);
     return isValid;
   };
 
-  /////////////////////////// form validation ended here/////////////////////////////
-  /////////////////////////// form validation ended here/////////////////////////////
+  const validateMail = () => {
+    let errors = {};
+    let isValid = true;
+
+    if (!credentials.authcode || credentials.authcode.length !== 6) {
+      errors.authcode = "6-digit verification code is required";
+      isValid = false;
+    }
+
+    setErrors(errors);
+    return isValid;
+  };
 
   return (
     <div className="container-fluid d-flex px-0 section">
       <section className="left-panel">
         <TestimonialSlider />
       </section>
+
       <section className="right-panel">
         <div className="main-heading">Register</div>
         <div className="regular-text">
           Thank you for choosing to register with us!
           <br />
-          {sendOtp === false
-            ? "Please fill out the following form to create your account"
-            : "Mail with verification code send to your email-ID"}
+          {sendOtp === false ? "Please fill out the following form" : "Enter verification code sent to your email"}
         </div>
         <div className="sep" />
+
         <div className="page-form">
-          {signUpReq === true ? (
+          {signUpReq ? (
+            // Google Phone Signup
             <form onSubmit={handleGoogleSubmit}>
               <div className="form-group">
-                <label htmlFor="exampleInputEmail1">
-                  Phone<span className="required">*</span>
-                </label>
+                <label>Phone <span className="required">*</span></label>
                 <input
-                  type="Number"
+                  type="tel"
                   className="form-control"
-                  id="exampleInputPhone"
-                  aria-describedby="emailHelp"
                   placeholder="Enter phone number"
-                  value={credentials.phone}
+                  value={credentials.phone || ""}
                   onChange={onChange}
                   name="phone"
+                  maxLength={10}
                 />
-                {errors.phone && (
-                  <span style={{ color: "red", fontSize: "small" }}>
-                    {errors.phone}
-                  </span>
-                )}
               </div>
-              <div className="form-group">
-                <div className="pt-3" />
-                <div className="form-button">
-                  <button
-                    disabled={credentials.phone?.length < 10}
-                    type="submit"
-                    className="btn btn-primary"
-                  >
-                    Create Account
-                  </button>
-                </div>
-              </div>
-            </form>
-          ) : signUpFbReq === true ? (
-            <form onSubmit={handleFacebookSubmit}>
-              <div className="form-group">
-                <label htmlFor="exampleInputEmail1">
-                  Phone<span className="required">*</span>
-                </label>
-                <input
-                  type="Number"
-                  className="form-control"
-                  id="exampleInputPhone"
-                  aria-describedby="emailHelp"
-                  placeholder="Enter phone number"
-                  value={credentials.phone}
-                  onChange={onChange}
-                  name="phone"
-                />
-                {errors.phone && (
-                  <span style={{ color: "red", fontSize: "small" }}>
-                    {errors.phone}
-                  </span>
-                )}
-              </div>
-
-              <div className="form-group">
-                <div className="pt-3" />
-                <div className="form-button">
-                  <button type="submit" className="btn btn-primary">
-                    Create Account
-                  </button>
-                </div>
-              </div>
+              <button type="submit" className="btn btn-primary">Create Account</button>
             </form>
           ) : sendOtp === false ? (
+            // Normal Signup Form
             <form onSubmit={sendMail}>
               <div className="form-group">
                 <div className="row">
                   <div className="col">
-                    <label htmlFor="exampleInputEmail1">
-                      First Name<span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="First name"
-                      aria-label="First name"
-                      value={credentials.fname}
-                      onChange={onChange}
-                      name="fname"
-                    />
-                    {errors.fname && (
-                      <span style={{ color: "red", fontSize: "small" }}>
-                        {errors.fname}
-                      </span>
-                    )}
+                    <label>First Name <span className="required">*</span></label>
+                    <input type="text" className="form-control" placeholder="First name" value={credentials.fname} onChange={onChange} name="fname" />
                   </div>
                   <div className="col">
-                    <label htmlFor="exampleInputEmail1">
-                      Last Name<span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Last name"
-                      aria-label="Last name"
-                      value={credentials.lname}
-                      onChange={onChange}
-                      name="lname"
-                    />
-                    {errors.lname && (
-                      <span style={{ color: "red", fontSize: "small" }}>
-                        {errors.lname}
-                      </span>
-                    )}
+                    <label>Last Name <span className="required">*</span></label>
+                    <input type="text" className="form-control" placeholder="Last name" value={credentials.lname} onChange={onChange} name="lname" />
                   </div>
                 </div>
               </div>
+
               <div className="form-group">
-                <label htmlFor="exampleInputEmail1">
-                  Phone<span className="required">*</span>
-                </label>
-                <input
-                  type="Number"
-                  className="form-control"
-                  id="exampleInputPhone"
-                  aria-describedby="emailHelp"
-                  placeholder="Enter phone number"
-                  value={credentials.phone}
-                  onChange={onChange}
-                  name="phone"
-                />
-                {errors.phone && (
-                  <span style={{ color: "red", fontSize: "small" }}>
-                    {errors.phone}
-                  </span>
-                )}
+                <label>Phone <span className="required">*</span></label>
+                <input type="tel" className="form-control" placeholder="Enter phone number" value={credentials.phone} onChange={onChange} name="phone" maxLength={10} />
               </div>
+
               <div className="form-group">
                 <div className="row">
                   <div className="col">
-                    <label htmlFor="exampleInputEmail1">
-                      Email address<span className="required">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      className="form-control"
-                      id="exampleInputEmail1"
-                      aria-describedby="emailHelp"
-                      placeholder="Enter email"
-                      value={credentials.email || ''}
-                      onChange={onChange}
-                      name="email"
-                    />
-                    {errors.email && (
-                      <span style={{ color: "red", fontSize: "small" }}>
-                        {errors.email}
-                      </span>
-                    )}
+                    <label>Email <span className="required">*</span></label>
+                    <input type="email" className="form-control" placeholder="Enter email" value={credentials.email} onChange={onChange} name="email" />
                   </div>
                   <div className="col">
-                    <label htmlFor="exampleInputPassword1">
-                      Password<span className="required">*</span>
-                    </label>
+                    <label>Password <span className="required">*</span></label>
                     <div style={{ position: "relative" }}>
                       <input
-                        type={handleShowPassword()}
+                        type={showPassword ? "text" : "password"}
                         className="form-control"
-                        id="exampleInputPassword1"
                         placeholder="Password"
                         value={credentials.password}
                         onChange={onChange}
                         name="password"
                       />
-                      <i
-                        className="password-icon"
-                        style={{
-                          position: "absolute",
-                          top: "50%",
-                          right: "0.75rem",
-                          transform: "translateY(-50%)",
-                          cursor: "pointer",
-                        }}
-                        onClick={togglePassword}
-                      >
-                        {showPassword ? (
-                          <i className="fa-solid fa-eye-slash" />
-                        ) : (
-                          <i className="fa-solid fa-eye" />
-                        )}
+                      <i className="password-icon" style={{ position: "absolute", top: "50%", right: "0.75rem", transform: "translateY(-50%)", cursor: "pointer" }} onClick={togglePassword}>
+                        {showPassword ? <i className="fa-solid fa-eye-slash" /> : <i className="fa-solid fa-eye" />}
                       </i>
                     </div>
-                    {errors.password && (
-                      <span style={{ color: "red", fontSize: "small" }}>
-                        {errors.password}
-                      </span>
-                    )}
                   </div>
                 </div>
-                <div className="pt-3" />
-                <div className="form-button">
-                  <button type="submit" className="btn btn-primary">
-                    Send Verification Code
-                  </button>
-                </div>
-                <div className="small-text pt-3 pb-3 text-center">
-                  Or continue with
-                </div>
-                <div className="social-buttons d-flex justify-content-between pb-3">
-                  <button className="social-icon" id="googlebtn">
-                    <i className="fa-brands fa-google fa-lg" />
-                  </button>
-                  <OAuth2Login
-                    className="social-icon"
-                    authorizationUrl="https://www.facebook.com/v12.0/dialog/oauth"
-                    responseType="token"
-                    clientId="303882562045636"
-                    redirectUri="https://to-let-room-on-rent.vercel.app/"
-                    scope="public_profile"
-                    onSuccess={handleFacebookResponse}
-                  >
-                    <i className="fa-brands fa-facebook fa-lg" />
-                  </OAuth2Login>
-                </div>
+              </div>
+
+              <button type="submit" className="btn btn-primary text-black">Send Verification Code</button>
+
+              <div className="small-text pt-3 pb-3 text-center">Or continue with</div>
+              <div className="social-buttons d-flex justify-content-center pb-3">
+                <div id="googlebtn" />
               </div>
             </form>
           ) : (
+            // OTP Verification
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label htmlFor="exampleInputEmail1">
-                  Verification Code<span className="required">*</span>
-                </label>
+                <label>Verification Code <span className="required">*</span></label>
                 <input
-                  type="Number"
+                  type="text"
                   className="form-control"
-                  id="exampleInputauthcode1"
-                  aria-describedby="authcodeHelp"
-                  placeholder="Enter authcode"
+                  placeholder="Enter 6-digit code"
                   value={credentials.authcode}
                   onChange={onChange}
                   name="authcode"
+                  maxLength={6}
                 />
-                {errors.authcode && (
-                  <span style={{ color: "red", fontSize: "small" }}>
-                    {errors.authcode}
-                  </span>
-                )}
-
-                {/* <div>{renderInputs()}</div> */}
               </div>
-              <div className="pt-3" />
-              <div className="form-button">
-                <button type="submit" className="btn btn-primary">
-                  Verify OTP
-                </button>
-              </div>
-              <div className="pt-3" />
+              <button type="submit" className="btn btn-primary">Verify OTP</button>
             </form>
           )}
         </div>
+
         <div className="regular-text text-center">
           Already have an account? <Link to="/login">Login</Link>
         </div>

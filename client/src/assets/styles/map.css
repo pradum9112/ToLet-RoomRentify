@@ -1,22 +1,66 @@
-.circles {
-    /* Your marker styles here */
-    width: 15px;
-    height: 15px;
-    background-color: blue;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    position: relative;
-  }
-  
-  
-  .circles.hover {
-    background-color: green;
-  }
-  
-  .circlesText {
-    color: white;
-    font-size: 14px;
-  }
+.custom-clear-marker {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.room-pin-wrapper {
+  position: relative; 
+  width: 46px; 
+  height: 46px;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out; 
+}
+
+.room-pin-circle {
+  width: 46px; 
+  height: 46px; 
+  border-radius: 50%; 
+  border: 3px solid #534173; 
+  overflow: hidden; 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  background: white;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.room-pin-circle img {
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+  display: block;
+}
+
+.room-pin-triangle {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 14px;
+  height: 14px;
+  background: #534173;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  z-index: 1;
+  transition: all 0.2s ease-in-out;
+}
+
+.room-pin-wrapper:hover {
+  transform: translateY(-4px) scale(1.08);
+}
+
+.room-pin-wrapper:hover .room-pin-circle {
+  border-color: #b53785; 
+  box-shadow: 0 8px 16px rgba(83, 65, 115, 0.4); 
+}
+
+
+.room-pin-wrapper:hover .room-pin-triangle {
+  background: #6c5694;
+  box-shadow: 4px 4px 8px rgba(83, 65, 115, 0.3);
+}

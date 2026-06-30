@@ -44,14 +44,14 @@ const Navbar = () => {
             <div className="nav-img">
               <NavLink to={"/"}>
                 <img
-                  src={require("../assets/media/images/rentlogo.png")}
+                  src={require("../assets/media/images/roomrentifylogo.png")}
                   alt="logo"
                 />
               </NavLink>
               <span>
                 To-Let
                 <br />
-                <strong>Room on Rent</strong>
+                <strong>RoomRentify</strong>
               </span>
             </div>
             {/* <div className="nav-search">
