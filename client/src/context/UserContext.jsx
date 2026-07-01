@@ -1,82 +1,89 @@
 import React, { createContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { url } from "../utils/Constants";
 import swal from "sweetalert";
 
 export const UserContext = createContext({});
 
 export function UserContextProvider({ children }) {
-
-  //auth states
-  const [user, setUser] = useState();
+  const [user, setUser] = useState(null);
   const [username, setUsername] = useState("");
   const [islogin, setIslogin] = useState(false);
 
-  //map states
+  // Other states
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
-
-  //chat states
   const [selectedChat, setSelectedChat] = useState();
   const [searchResult, setSearchResult] = useState([]);
   const [notification, setNotification] = useState([]);
-  const [chats, setChats] = useState();
+  const [chats, setChats] = useState([]);
+  const [loggedUser, setLoggedUser] = useState(null);
+  const [filterData, setFilterData] = useState({ address: "", placetype: "" });
 
-  const [loggedUser, setLoggedUser] = useState();
-
-  const [filterData, setFilterData] = useState({
-    address: "",
-    placetype: "",
-  });
-
-  const history = useNavigate();
-
-  //function to verify user
+  // Verify Token
   const checkToken = async () => {
-    try {
-      const response = await fetch(`${url}/auth/verifyuser`, {
-        method: "POST",
-        mode: "cors",
-        referrerPolicy: "origin-when-cross-origin",
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          token: localStorage.getItem("token"),
-        },
-      });
+  const currentToken = localStorage.getItem("token");
+  if (!currentToken) {
+    setIslogin(false);
+    return false;
+  }
 
-      const json = await response.json();
-      if (json.success === true) {
-        setIslogin(true);
-        setUser(json);
-        setUsername(String(json.data.firstName + " " + json.data.lastName));
-      } else if(json.success === false){
-        setIslogin(false);
-        localStorage.removeItem("token");
-        localStorage.removeItem("userInfo");
+  try {
+    const response = await fetch(`${url}/auth/verifyuser`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${currentToken}`,
+        "token": currentToken,        // ← dono bhej rahe hain
+      },
+    });
+
+    const json = await response.json();
+
+    if (response.ok && json.success === true) {
+      setIslogin(true);
+      if (json.data) {
+        setUsername(`${json.data.firstName || ""} ${json.data.lastName || ""}`.trim());
       }
-    } catch (err) {
-      swal({
-        title: "Try Again!",
-        text: "server is down!",
-        icon: "error",
-        button: "Ok!",
-      });
+      return true;
+    } else {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userInfo");
+      setIslogin(false);
+      return false;
+    }
+  } catch (err) {
+    console.error("Token verification failed:", err);
+    setIslogin(false);
+    return false;
+  }
+};
+
+  // Load user from localStorage
+  const loadUserData = () => {
+    const userInfo = localStorage.getItem("userInfo");
+    if (userInfo) {
+      try {
+        const parsed = JSON.parse(userInfo);
+        setUser(parsed);
+        setLoggedUser(parsed);
+        setIslogin(true);
+
+        const name = parsed.username ||
+          (parsed.data
+            ? `${parsed.data.firstName || ""} ${parsed.data.lastName || ""}`.trim()
+            : "");
+        setUsername(name);
+      } catch (e) {
+        console.error("Failed to parse userInfo");
+      }
     }
   };
 
-    const setDatas = async () => {
-    const userInfo = await JSON.parse(localStorage.getItem("userInfo"));
-    console.log(userInfo);
-    setUser(userInfo);
-    setLoggedUser(userInfo);
-    // history("/");
-  };
-
+  // Run on initial load
   useEffect(() => {
-    setDatas();
-  }, [history]);
-
+  loadUserData();
+  checkToken();
+}, []);
   return (
     <UserContext.Provider
       value={{

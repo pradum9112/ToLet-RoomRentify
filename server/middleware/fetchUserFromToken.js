@@ -1,27 +1,37 @@
-require('dotenv').config()
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+const JWT_SECRET = process.env.JWT_SECRET;
 
+const fetchUser = (req, res, next) => {
+  try {
+    let token = null;
 
-//Get the user from the jwt token add add id to the req object 
-const fetchUser = async (req, res, next) => {
+    // Multiple ways to get token
+    if (req.header("Authorization")) {
+      token = req.header("Authorization").replace("Bearer ", "");
+    } else if (req.header("token")) {
+      token = req.header("token");
+    } else if (req.header("auth-token")) {
+      token = req.header("auth-token");
+    }
 
-
-    // bringing token from user
-    const token = req.header('token');
     if (!token) {
-        return res.status(401).send({ error: "Please authenticate using a valid token" })
+      return res.status(401).json({
+        success: false,
+        message: "Please authenticate using a valid token"
+      });
     }
 
-    try {
-        const data = jwt.verify(token, process.env.JWT_SECRET) //will decode the token
-        req.userId = data.user.user;
-        next()
-    }
+    const data = jwt.verify(token, JWT_SECRET);
+    req.userId = data.user.id;   // Make sure your JWT payload has .user.id
 
-    catch (error) {
-        res.status(401).send({ message: "Please authenticate using a valid token" })
-    }
-    
-}
+    next();
+  } catch (error) {
+    console.error("JWT Error:", error.message);
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token"
+    });
+  }
+};
 
 module.exports = fetchUser;

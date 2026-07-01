@@ -17,7 +17,6 @@ import { useContext } from "react";
 import { UserContext } from "../../context/UserContext.jsx";
 import {url} from "../../utils/Constants";
 
-const ENDPOINT = "https://tolet-roomonrent-server.onrender.com";
 let socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
@@ -54,7 +53,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   //for socket get initallize first we put this use effect at the top
   useEffect(() => {
-    socket = io(ENDPOINT);
+    socket = io(url);
     socket.emit("setup", user);
     socket.on("connected", () => setSocketConnected(true));
     socket.on("typing", () => setIsTyping(true));

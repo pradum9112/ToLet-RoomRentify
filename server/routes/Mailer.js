@@ -7,7 +7,7 @@ const Mailer = async (to, sub, body) => {
 
     return new Promise((resolve, reject) => {
 
-        const mailPass = process.env.EMAIL_PASS2;
+        const mailPass = process.env.EMAIL_PASS;
         const email = process.env.EMAIL
         let transporter = nodemailer.createTransport({
             service: 'gmail',

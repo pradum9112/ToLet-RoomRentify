@@ -54,13 +54,7 @@ const Navbar = () => {
                 <strong>RoomRentify</strong>
               </span>
             </div>
-            {/* <div className="nav-search">
-              <AiOutlineSearch />
-              <input
-                type="text"
-                placeholder="Search Opportunities"
-              />
-            </div> */}
+           
           </div>
           <div className="nav-right">
             <div className="nav-tabs">

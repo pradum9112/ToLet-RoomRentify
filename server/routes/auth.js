@@ -224,59 +224,50 @@ Router.post(
   [
     body("email", "Enter a valid email address").isEmail(),
     body("password", "Password cannot be blank").exists(),
-    body("password", "Enter a valid password of minimum 8 digits").isLength({
-      min: 8,
-    }),
+    body("password", "Enter a valid password of minimum 8 digits").isLength({ min: 8 }),
   ],
   async (req, res) => {
-    // to that entered email and password are valid , thay can be misleading or incorrect
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ success: false, message: errors.array() });
     }
 
-    // if user exists
     try {
       let user = await User.findOne({ email: req.body.email });
       if (!user) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "User with given email id does not exist.",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "User with given email id does not exist.",
+        });
       }
 
-      // To compare hashed password
-      bcrypt.compare(
-        req.body.password,
-        user.password,
-        async (error, compareResult) => {
-          if (compareResult === false) {
-            const success = false;
-            return res
-              .status(400)
-              .json({ success: false, message: "Invalid email or password" });
-          }
-
-          const paylord = {
-            user: {
-              user: user.id,
-            },
-          };
-          const authToken = await jwt.sign(paylord, JWT_SECRET);
-
-          await res.json({
-            success: true,
-            authToken,
-            _id: user._id,
-            username: user.username,
-            email: user.email,
-            pic: user.pic,
-            message: "verified",
+      bcrypt.compare(req.body.password, user.password, async (error, compareResult) => {
+        if (compareResult === false) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid email or password"
           });
         }
-      );
+
+        // FIXED PAYLOAD - Consistent with Google Login
+        const payload = {
+          user: {
+            id: user.id,           // ← Yeh important change
+          },
+        };
+
+        const authToken = jwt.sign(payload, JWT_SECRET);
+
+        res.json({
+          success: true,
+          authToken,
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          pic: user.pic,
+          message: "verified",
+        });
+      });
     } catch (error) {
       console.error(error.message);
       res.status(500).json({ message: "Some error occured", success: false });
