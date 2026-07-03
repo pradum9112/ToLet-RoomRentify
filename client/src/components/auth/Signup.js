@@ -45,7 +45,7 @@ const Signup = (props) => {
 
       google.accounts.id.renderButton(
         document.getElementById("googlebtn"),
-       { theme: "outline", size: "large", text: "continue_with", shape: "pill",logo_alignment: "center"}
+       { theme: "outline", size: "large", text: "continue_with", shape: "pill",logo_alignment: "center", width: "320"}
       );
     };
 
@@ -316,9 +316,9 @@ const Signup = (props) => {
 
               <button type="submit" className="btn btn-primary"  style={{backgroundColor: "#0d6efd"}}>Send Verification Code</button>
 
-              <div className="small-text pt-3 pb-3 text-center">Or continue with</div>
+              <div className="small-text pt-3 pb-3 text-center">Or</div>
               <div className="social-buttons d-flex justify-content-center pb-3">
-                <div id="googlebtn" className="social-icon" style={{ border: "none", background: "transparent", boxShadow: "none" }}></div>
+                <div id="googlebtn" className="social-icon" style={{ border: "none", background: "transparent", boxShadow: "none",width: "100%",maxWidth: "320px",minWidth: "280px" }}></div>
               </div>
             </form>
           ) : (

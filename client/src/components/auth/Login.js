@@ -190,7 +190,7 @@ const Login = () => {
         });
         google.accounts.id.renderButton(
           document.getElementById("googlebtn"),
-          { theme: "outline", size: "large",  shape: "pill",text: "continue_with",logo_alignment: "center" }
+          { theme: "outline", size: "large",  shape: "pill",text: "continue_with",logo_alignment: "center",width: "320" }
         );
       }
     };
@@ -271,9 +271,9 @@ const Login = () => {
                 <button type="submit" className="btn btn-primary w-100" style={{backgroundColor: "#0d6efd"}}>Login</button>
               </form>
 
-              <div className="small-text pt-3 pb-3 text-center">Or continue with</div>
+              <div className="small-text pt-3 pb-3 text-center">Or</div>
               <div className="social-buttons d-flex justify-content-center pb-3">
-                <div id="googlebtn" className="social-icon" style={{ border: "none", background: "transparent", boxShadow: "none" }}></div>
+                <div id="googlebtn" className="social-icon" style={{ border: "none", background: "transparent", boxShadow: "none",width: "100%",maxWidth: "320px",minWidth: "280px" }}></div>
               </div>
             </>
           )}
