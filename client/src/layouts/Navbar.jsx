@@ -128,7 +128,7 @@ const Navbar = () => {
 
                 <NavLink to={"/signup"}>
                   <button className="btn signup-btn">
-                    <span>SignUp</span>
+                    <span className="text-white">SignUp</span>
                     <div className="imgs">
                       <BiLogIn />
                     </div>

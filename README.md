@@ -1,4 +1,4 @@
-# ToLet — RoomRentify
+# ToLet-RoomRentify
 
 A comprehensive, full-stack property rental ecosystem designed to eliminate the tedious hassle of physical, door-to-door accommodation hunting. Users can seamlessly discover, reserve, and discuss rooms, flats, and hotel spaces directly through the platform.
 
