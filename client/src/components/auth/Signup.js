@@ -42,6 +42,7 @@ const Signup = (props) => {
         client_id:
           "556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
         callback: handleCallbackResponse,
+        prompt: "select_account",
       });
 
       google.accounts.id.renderButton(document.getElementById("googlebtn"), {
