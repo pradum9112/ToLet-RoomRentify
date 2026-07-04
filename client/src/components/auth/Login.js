@@ -16,7 +16,7 @@ const Login = () => {
   });
 
   const history = useNavigate();
-  const [googleID, setGoogleID] = useState(0);
+  const [googleID, setGoogleID] = useState("");
   const [signUpReq, setSignUpReq] = useState(false);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -25,9 +25,9 @@ const Login = () => {
 
   const onChange = (event) => {
     const { name, value } = event.target;
-    setCredentials(prev => ({
+    setCredentials((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -36,7 +36,7 @@ const Login = () => {
     try {
       const userObject = jwtDecode(response.credential);
 
-      setCredentials(prev => ({
+      setCredentials((prev) => ({
         ...prev,
         email: userObject.email,
         fname: userObject.given_name || "",
@@ -47,21 +47,34 @@ const Login = () => {
       const res = await fetch(`${url}/oauth/google/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ googleId: userObject.sub, email: userObject.email }),
+        body: JSON.stringify({
+          googleId: userObject.sub,
+          email: userObject.email,
+        }),
       });
 
-      const json = await res.json();
+      const json = await res.json(); // ← Yeh line bahar rakho
 
       if (json.success) {
-        localStorage.setItem("token", json.authToken);
-        localStorage.setItem("userInfo", JSON.stringify(json));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("token", json.authToken);
+          localStorage.setItem("userInfo", JSON.stringify(json));
+        }
         setIslogin(true);
-        swal({ title: "Welcome!", text: "Logged in Successfully", icon: "success" });
+        swal({
+          title: "Welcome!",
+          text: "Logged in Successfully",
+          icon: "success",
+        });
         history("/");
       } else if (json.requireSignup) {
         setSignUpReq(true);
       } else {
-        swal({ title: "Try Again!", text: json.message || "Something went wrong", icon: "error" });
+        swal({
+          title: "Try Again!",
+          text: json.message || "Something went wrong",
+          icon: "error",
+        });
       }
     } catch (err) {
       swal({ title: "Try Again!", text: "Server error", icon: "error" });
@@ -70,62 +83,64 @@ const Login = () => {
 
   // Google Phone Completion
   const handleGoogleSubmit = async (event) => {
-  event.preventDefault();
+    event.preventDefault();
 
-  if (!credentials.phone || credentials.phone.length !== 10) {
-    swal({
-      title: "Error",
-      text: "Please enter valid 10 digit phone number",
-      icon: "error"
-    });
-    return;
-  }
-
-  try {
-    const response = await fetch(`${url}/oauth/google/signup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fname: credentials.fname || "",
-        lname: credentials.lname || "",
-        phone: credentials.phone,
-        email: credentials.email,
-        googleId: googleID,
-      }),
-    });
-
-    const json = await response.json();
-    console.log("Google Signup Response:", json);   // ← Debugging ke liye
-
-    if (json.success === true) {
-      localStorage.setItem("token", json.authToken);
-      localStorage.setItem("userInfo", JSON.stringify(json));
-      
-      setIslogin(true);           // Important
+    if (!credentials.phone || credentials.phone.length !== 10) {
       swal({
-        title: "Success!",
-        text: "Account Created Successfully",
-        icon: "success"
+        title: "Error",
+        text: "Please enter valid 10 digit phone number",
+        icon: "error",
       });
-      history("/");
-    } else {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${url}/oauth/google/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fname: credentials.fname || "",
+          lname: credentials.lname || "",
+          phone: credentials.phone,
+          email: credentials.email,
+          googleId: googleID,
+        }),
+      });
+
+      const json = await response.json();
+      console.log("Google Signup Response:", json); // ← Debugging ke liye
+
+      if (json.success === true) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("token", json.authToken);
+          localStorage.setItem("userInfo", JSON.stringify(json));
+        }
+
+        setIslogin(true);
+        swal({
+          title: "Success!",
+          text: "Account Created Successfully",
+          icon: "success",
+        });
+        history("/");
+      } else {
+        swal({
+          title: "Try Again!",
+          text: json.message || "Something went wrong",
+          icon: "error",
+        });
+      }
+    } catch (err) {
+      console.error(err);
       swal({
         title: "Try Again!",
-        text: json.message || "Something went wrong",
-        icon: "error"
+        text: "Server error occurred",
+        icon: "error",
       });
     }
-  } catch (err) {
-    console.error(err);
-    swal({
-      title: "Try Again!",
-      text: "Server error occurred",
-      icon: "error"
-    });
-  }
-};
+  };
   // Normal Login
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -144,14 +159,22 @@ const Login = () => {
 
       if (json.success) {
         console.log("Login Response:", json);
-       console.log("Token Received:", json.authToken);
+        console.log("Token Received:", json.authToken);
         localStorage.setItem("token", json.authToken);
         localStorage.setItem("userInfo", JSON.stringify(json));
         setIslogin(true);
-        swal({ title: "Welcome!", text: "Logged in Successfully", icon: "success" });
+        swal({
+          title: "Welcome!",
+          text: "Logged in Successfully",
+          icon: "success",
+        });
         history("/");
       } else {
-        swal({ title: "Try Again!", text: json.message || "Invalid credentials", icon: "error" });
+        swal({
+          title: "Try Again!",
+          text: json.message || "Invalid credentials",
+          icon: "error",
+        });
       }
     } catch (err) {
       swal({ title: "Try Again!", text: "Server error", icon: "error" });
@@ -185,13 +208,18 @@ const Login = () => {
     const initGoogle = () => {
       if (window.google?.accounts) {
         google.accounts.id.initialize({
-          client_id: "556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
+          client_id:
+            "556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
           callback: handleCallbackResponse,
         });
-        google.accounts.id.renderButton(
-          document.getElementById("googlebtn"),
-          { theme: "outline", size: "large",  shape: "pill",text: "continue_with",logo_alignment: "center",width: "320" }
-        );
+        google.accounts.id.renderButton(document.getElementById("googlebtn"), {
+          theme: "outline",
+          size: "large",
+          shape: "pill",
+          text: "continue_with",
+          logo_alignment: "center",
+          width: "320",
+        });
       }
     };
 
@@ -212,7 +240,9 @@ const Login = () => {
           {signUpReq ? (
             <form onSubmit={handleGoogleSubmit}>
               <div className="form-group">
-                <label>Phone <span className="required">*</span></label>
+                <label>
+                  Phone <span className="required">*</span>
+                </label>
                 <input
                   type="number"
                   className="form-control"
@@ -222,13 +252,17 @@ const Login = () => {
                   onChange={onChange}
                 />
               </div>
-              <button type="submit" className="btn btn-primary">Create Account</button>
+              <button type="submit" className="btn btn-primary">
+                Create Account
+              </button>
             </form>
           ) : (
             <>
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                  <label>Email <span className="required">*</span></label>
+                  <label>
+                    Email <span className="required">*</span>
+                  </label>
                   <input
                     type="email"
                     className="form-control"
@@ -236,11 +270,17 @@ const Login = () => {
                     value={credentials.email}
                     onChange={onChange}
                   />
-                  {errors.email && <span style={{ color: "red", fontSize: "small" }}>{errors.email}</span>}
+                  {errors.email && (
+                    <span style={{ color: "red", fontSize: "small" }}>
+                      {errors.email}
+                    </span>
+                  )}
                 </div>
 
                 <div className="form-group">
-                  <label>Password <span className="required">*</span></label>
+                  <label>
+                    Password <span className="required">*</span>
+                  </label>
                   <div style={{ position: "relative" }}>
                     <input
                       type={showPassword ? "text" : "password"}
@@ -252,28 +292,61 @@ const Login = () => {
                     <i
                       className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} password-icon`}
                       onClick={togglePassword}
-                      style={{ position: "absolute", top: "50%", right: "15px", transform: "translateY(-50%)", cursor: "pointer" }}
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        right: "15px",
+                        transform: "translateY(-50%)",
+                        cursor: "pointer",
+                      }}
                     />
                   </div>
-                  {errors.password && <span style={{ color: "red", fontSize: "small" }}>{errors.password}</span>}
+                  {errors.password && (
+                    <span style={{ color: "red", fontSize: "small" }}>
+                      {errors.password}
+                    </span>
+                  )}
                 </div>
 
                 <div className="form-settings d-flex justify-content-between">
                   <div className="form-check">
-                    <input type="checkbox" className="form-check-input" id="exampleCheck1" />
-                    <label className="form-check-label" htmlFor="exampleCheck1">Remember Me</label>
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id="exampleCheck1"
+                    />
+                    <label className="form-check-label" htmlFor="exampleCheck1">
+                      Remember Me
+                    </label>
                   </div>
                   <div>
                     <Link to="/forgotpassword">Forgot Password?</Link>
                   </div>
                 </div>
 
-                <button type="submit" className="btn btn-primary w-100" style={{backgroundColor: "#0d6efd"}}>Login</button>
+                <button
+                  type="submit"
+                  className="btn btn-primary w-100"
+                  style={{ backgroundColor: "#0d6efd" }}
+                >
+                  Login
+                </button>
               </form>
 
               <div className="small-text pt-3 pb-3 text-center">Or</div>
               <div className="social-buttons d-flex justify-content-center pb-3">
-                <div id="googlebtn" className="social-icon" style={{ border: "none", background: "transparent", boxShadow: "none",width: "100%",maxWidth: "320px",minWidth: "280px" }}></div>
+                <div
+                  id="googlebtn"
+                  className="social-icon"
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    boxShadow: "none",
+                    width: "100%",
+                    maxWidth: "320px",
+                    minWidth: "280px",
+                  }}
+                ></div>
               </div>
             </>
           )}

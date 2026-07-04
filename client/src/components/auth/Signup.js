@@ -16,12 +16,12 @@ const Signup = (props) => {
     email: props.email || "",
     password: "",
     phone: "",
-    authcode: "",          // ← Changed from null to empty string
+    authcode: "", // ← Changed from null to empty string
   });
 
   const history = useNavigate();
   const [sendOtp, setSendOtp] = useState(false);
-  const [googleID, setGoogleID] = useState(0);
+  const [googleID, setGoogleID] = useState("");
   const [signUpReq, setSignUpReq] = useState(false);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -39,14 +39,19 @@ const Signup = (props) => {
       if (typeof google === "undefined" || !google.accounts) return;
 
       google.accounts.id.initialize({
-        client_id: "556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
+        client_id:
+          "556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
         callback: handleCallbackResponse,
       });
 
-      google.accounts.id.renderButton(
-        document.getElementById("googlebtn"),
-       { theme: "outline", size: "large", text: "continue_with", shape: "pill",logo_alignment: "center", width: "320"}
-      );
+      google.accounts.id.renderButton(document.getElementById("googlebtn"), {
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "pill",
+        logo_alignment: "center",
+        width: "320",
+      });
     };
 
     if (typeof google !== "undefined" && google.accounts) {
@@ -60,7 +65,7 @@ const Signup = (props) => {
     try {
       const userObject = jwtDecode(response.credential);
 
-      setCredentials(prev => ({
+      setCredentials((prev) => ({
         ...prev,
         email: userObject.email,
         fname: userObject.given_name || "",
@@ -71,21 +76,34 @@ const Signup = (props) => {
       const res = await fetch(`${url}/oauth/google/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ googleId: userObject.sub, email: userObject.email }),
+        body: JSON.stringify({
+          googleId: userObject.sub,
+          email: userObject.email,
+        }),
       });
 
       const json = await res.json();
 
       if (json.success) {
-        localStorage.setItem("token", json.authToken);
-        localStorage.setItem("userInfo", JSON.stringify(json));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("token", json.authToken);
+          localStorage.setItem("userInfo", JSON.stringify(json));
+        }
         setIslogin(true);
-        swal({ title: "Welcome!", text: "Logged in Successfully", icon: "success" });
+        swal({
+          title: "Welcome!",
+          text: "Logged in Successfully",
+          icon: "success",
+        });
         history("/");
       } else if (json.requireSignup) {
         setSignUpReq(true);
       } else {
-        swal({ title: "Try Again!", text: json.message || "User already exists!", icon: "error" });
+        swal({
+          title: "Try Again!",
+          text: json.message || "User already exists!",
+          icon: "error",
+        });
       }
     } catch (err) {
       swal({ title: "Try Again!", text: "Server error!", icon: "error" });
@@ -94,9 +112,9 @@ const Signup = (props) => {
 
   const onChange = (event) => {
     const { name, value } = event.target;
-    setCredentials(prev => ({
+    setCredentials((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -120,10 +138,16 @@ const Signup = (props) => {
       const json = await response.json();
 
       if (json.success) {
-        localStorage.setItem("token", json.authToken);
-        localStorage.setItem("userInfo", JSON.stringify(json));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("token", json.authToken);
+          localStorage.setItem("userInfo", JSON.stringify(json));
+        }
         setIslogin(true);
-        swal({ title: "Success!", text: "Account Created Successfully", icon: "success" });
+        swal({
+          title: "Success!",
+          text: "Account Created Successfully",
+          icon: "success",
+        });
         history("/");
       } else {
         swal({ title: "Try Again!", text: json.message, icon: "error" });
@@ -146,7 +170,11 @@ const Signup = (props) => {
       const json = await response.json();
 
       if (json.success) {
-        swal({ title: "Good job!", text: "Verification code sent to email!", icon: "success" });
+        swal({
+          title: "Good job!",
+          text: "Verification code sent to email!",
+          icon: "success",
+        });
         setSendOtp(true);
       } else {
         swal({ title: "Try Again!", text: json.message, icon: "error" });
@@ -176,7 +204,11 @@ const Signup = (props) => {
       const json = await response.json();
 
       if (json.success) {
-        swal({ title: "Success!", text: "Account Created Successfully", icon: "success" });
+        swal({
+          title: "Success!",
+          text: "Account Created Successfully",
+          icon: "success",
+        });
         localStorage.setItem("token", json.authToken);
         localStorage.setItem("userInfo", JSON.stringify(json));
         setIslogin(true);
@@ -251,7 +283,9 @@ const Signup = (props) => {
           {signUpReq ? (
             <form onSubmit={handleGoogleSubmit}>
               <div className="form-group">
-                <label>Phone <span className="required">*</span></label>
+                <label>
+                  Phone <span className="required">*</span>
+                </label>
                 <input
                   type="number"
                   className="form-control"
@@ -261,40 +295,92 @@ const Signup = (props) => {
                   onChange={onChange}
                 />
               </div>
-              <button type="submit" className="btn btn-primary">Create Account</button>
+              <button type="submit" className="btn btn-primary">
+                Create Account
+              </button>
             </form>
           ) : sendOtp === false ? (
             <form onSubmit={sendMail}>
               <div className="form-group">
                 <div className="row">
                   <div className="col">
-                    <label>First Name <span className="required">*</span></label>
-                    <input type="text" className="form-control" name="fname" value={credentials.fname} onChange={onChange} />
-                    {errors.fname && <span style={{ color: "red", fontSize: "small" }}>{errors.fname}</span>}
+                    <label>
+                      First Name <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="fname"
+                      value={credentials.fname}
+                      onChange={onChange}
+                    />
+                    {errors.fname && (
+                      <span style={{ color: "red", fontSize: "small" }}>
+                        {errors.fname}
+                      </span>
+                    )}
                   </div>
                   <div className="col">
-                    <label>Last Name <span className="required">*</span></label>
-                    <input type="text" className="form-control" name="lname" value={credentials.lname} onChange={onChange} />
-                    {errors.lname && <span style={{ color: "red", fontSize: "small" }}>{errors.lname}</span>}
+                    <label>
+                      Last Name <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="lname"
+                      value={credentials.lname}
+                      onChange={onChange}
+                    />
+                    {errors.lname && (
+                      <span style={{ color: "red", fontSize: "small" }}>
+                        {errors.lname}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
               <div className="form-group">
-                <label>Phone <span className="required">*</span></label>
-                <input type="number" className="form-control" name="phone" value={credentials.phone} onChange={onChange} />
-                {errors.phone && <span style={{ color: "red", fontSize: "small" }}>{errors.phone}</span>}
+                <label>
+                  Phone <span className="required">*</span>
+                </label>
+                <input
+                  type="number"
+                  className="form-control"
+                  name="phone"
+                  value={credentials.phone}
+                  onChange={onChange}
+                />
+                {errors.phone && (
+                  <span style={{ color: "red", fontSize: "small" }}>
+                    {errors.phone}
+                  </span>
+                )}
               </div>
 
               <div className="form-group">
                 <div className="row">
                   <div className="col">
-                    <label>Email <span className="required">*</span></label>
-                    <input type="email" className="form-control" name="email" value={credentials.email} onChange={onChange} />
-                    {errors.email && <span style={{ color: "red", fontSize: "small" }}>{errors.email}</span>}
+                    <label>
+                      Email <span className="required">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      name="email"
+                      value={credentials.email}
+                      onChange={onChange}
+                    />
+                    {errors.email && (
+                      <span style={{ color: "red", fontSize: "small" }}>
+                        {errors.email}
+                      </span>
+                    )}
                   </div>
                   <div className="col">
-                    <label>Password <span className="required">*</span></label>
+                    <label>
+                      Password <span className="required">*</span>
+                    </label>
                     <div style={{ position: "relative" }}>
                       <input
                         type={showPassword ? "text" : "password"}
@@ -306,25 +392,54 @@ const Signup = (props) => {
                       <i
                         className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} password-icon`}
                         onClick={togglePassword}
-                        style={{ position: "absolute", top: "50%", right: "15px", transform: "translateY(-50%)", cursor: "pointer" }}
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          right: "15px",
+                          transform: "translateY(-50%)",
+                          cursor: "pointer",
+                        }}
                       />
                     </div>
-                    {errors.password && <span style={{ color: "red", fontSize: "small" }}>{errors.password}</span>}
+                    {errors.password && (
+                      <span style={{ color: "red", fontSize: "small" }}>
+                        {errors.password}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary"  style={{backgroundColor: "#0d6efd"}}>Send Verification Code</button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ backgroundColor: "#0d6efd" }}
+              >
+                Send Verification Code
+              </button>
 
               <div className="small-text pt-3 pb-3 text-center">Or</div>
               <div className="social-buttons d-flex justify-content-center pb-3">
-                <div id="googlebtn" className="social-icon" style={{ border: "none", background: "transparent", boxShadow: "none",width: "100%",maxWidth: "320px",minWidth: "280px" }}></div>
+                <div
+                  id="googlebtn"
+                  className="social-icon"
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    boxShadow: "none",
+                    width: "100%",
+                    maxWidth: "320px",
+                    minWidth: "280px",
+                  }}
+                ></div>
               </div>
             </form>
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>Verification Code <span className="required">*</span></label>
+                <label>
+                  Verification Code <span className="required">*</span>
+                </label>
                 <input
                   type="number"
                   className="form-control"
@@ -334,9 +449,15 @@ const Signup = (props) => {
                   onChange={onChange}
                   maxLength={6}
                 />
-                {errors.authcode && <span style={{ color: "red", fontSize: "small" }}>{errors.authcode}</span>}
+                {errors.authcode && (
+                  <span style={{ color: "red", fontSize: "small" }}>
+                    {errors.authcode}
+                  </span>
+                )}
               </div>
-              <button type="submit" className="btn btn-primary">Verify OTP</button>
+              <button type="submit" className="btn btn-primary">
+                Verify OTP
+              </button>
             </form>
           )}
         </div>
