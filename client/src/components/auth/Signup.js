@@ -42,12 +42,14 @@ const Signup = (props) => {
         client_id:
           "556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
         callback: handleCallbackResponse,
-        prompt: "select_account",
+        auto_select: false,
+        cancel_on_tap_outside: false,
+        use_fedcm_for_prompt: false,
       });
 
       google.accounts.id.renderButton(document.getElementById("googlebtn"), {
         theme: "outline",
-        size: "large",
+        size: "medium",
         text: "continue_with",
         shape: "pill",
         logo_alignment: "center",
