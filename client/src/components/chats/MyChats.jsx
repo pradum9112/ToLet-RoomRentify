@@ -1,11 +1,10 @@
-import { AddIcon } from "@chakra-ui/icons";
+import { BellIcon } from "@chakra-ui/icons";
 import { Box, Stack, Text } from "@chakra-ui/layout";
 import { useToast } from "@chakra-ui/toast";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { getSender } from "./config/ChatLogics";
 import ChatLoading from "./ChatLoading";
-import GroupChatModal from "./miscellaneous/GroupChatModal";
 import { Button } from "@chakra-ui/react";
 import { useContext } from "react";
 import { UserContext } from "../../context/UserContext.jsx";
@@ -15,15 +14,10 @@ import { useDisclosure } from "@chakra-ui/hooks";
 import { Input } from "@chakra-ui/input";
 import UserListItem from "./userAvatar/UserListItem";
 import { Spinner } from "@chakra-ui/spinner";
-import ProfileModal from "./miscellaneous/ProfileModal";
-import NotificationBadge from "react-notification-badge";
-import { Effect } from "react-notification-badge";
-import { BellIcon, ChevronDownIcon } from "@chakra-ui/icons";
-import { Avatar } from "@chakra-ui/avatar";
+import { Badge } from "@chakra-ui/react";
 import {
   Menu,
   MenuButton,
-  MenuDivider,
   MenuItem,
   MenuList,
 } from "@chakra-ui/menu";
@@ -39,7 +33,6 @@ import { Tooltip } from "@chakra-ui/tooltip";
 
 
 
-
 const MyChats = ({ fetchAgain }) => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,14 +41,11 @@ const MyChats = ({ fetchAgain }) => {
   const {
     loggedUser,
     setLoggedUser,
-    islogin,
-    setIslogin,
     selectedChat,
     setSelectedChat,
     searchResult,
     setSearchResult,
     user,
-    setUser,
     notification,
     setNotification,
     chats,
@@ -167,9 +157,10 @@ const MyChats = ({ fetchAgain }) => {
   };
 
   useEffect(() => {
-    setLoggedUser(JSON.parse(localStorage.getItem("userInfo")));
+    const raw = localStorage.getItem("userInfo");
+    if (raw) setLoggedUser(JSON.parse(raw));
     fetchChats();
-  }, [fetchAgain]);
+  }, [fetchAgain]); 
 
   return (
     <>
@@ -203,12 +194,25 @@ const MyChats = ({ fetchAgain }) => {
         </Tooltip>
 
         <Menu>
-            <MenuButton p={1}>
-              <NotificationBadge
-                count={notification.length}
-                effect={Effect.SCALE}
-              />
+            <MenuButton p={1} position="relative">
               <BellIcon fontSize="2xl" m={1} />
+              {notification.length > 0 && (
+                <Badge
+                  colorScheme="red"
+                  borderRadius="full"
+                  position="absolute"
+                  top="-1"
+                  right="-1"
+                  fontSize="0.8em"
+                  minW="6"
+                  h="6"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  {notification.length}
+                </Badge>
+              )}
             </MenuButton>
             <MenuList p={1} fontSize="2xl">
               {!notification.length && "No New Messages"}
@@ -228,15 +232,6 @@ const MyChats = ({ fetchAgain }) => {
             </MenuList>
           </Menu>
         
-        {/* <GroupChatModal>
-          <Button
-            display="flex"
-            fontSize={{ base: "17px", md: "10px", lg: "17px" }}
-            rightIcon={<AddIcon />}
-          >
-            New Group Chat
-          </Button>
-        </GroupChatModal> */}
       </Box>
 
       <Box
@@ -249,7 +244,7 @@ const MyChats = ({ fetchAgain }) => {
         borderRadius="lg"
         overflowY="hidden"
       >
-        {chats ? (
+        {Array.isArray(chats) ? (
           <Stack overflowY="scroll">
             {chats.map((chat) => (
               <Box
@@ -269,7 +264,7 @@ const MyChats = ({ fetchAgain }) => {
                 </Text>
                 {chat.latestMessage && (
                   <Text fontSize="xs">
-                    <b>{chat.latestMessage.sender.username} : </b>
+                    <b>{chat.latestMessage?.sender?.username ?? "Unknown"} : </b>
                     {chat.latestMessage.content.length > 50
                       ? chat.latestMessage.content.substring(0, 51) + "..."
                       : chat.latestMessage.content}

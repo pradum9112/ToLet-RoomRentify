@@ -87,28 +87,32 @@ const Signup = (props) => {
 
       const json = await res.json();
 
-      if (json.success) {
+      if (json.success === true) {
+        // Already registered Google user
         if (typeof window !== "undefined") {
           localStorage.setItem("token", json.authToken);
           localStorage.setItem("userInfo", JSON.stringify(json));
         }
         setIslogin(true);
         swal({
-          title: "Welcome!",
+          title: "Welcome Back!",
           text: "Logged in Successfully",
           icon: "success",
         });
         history("/");
-      } else if (json.requireSignup) {
+      } else if (json.requireSignup === true) {
+        // New Google user
         setSignUpReq(true);
       } else {
+        // User exists with different method
         swal({
-          title: "Try Again!",
-          text: json.message || "User already exists!",
-          icon: "error",
+          title: "Account Already Exists",
+          text: json.message || "Please login with your email and password.",
+          icon: "info",
         });
       }
     } catch (err) {
+      console.error(err);
       swal({ title: "Try Again!", text: "Server error!", icon: "error" });
     }
   };
@@ -153,7 +157,11 @@ const Signup = (props) => {
         });
         history("/");
       } else {
-        swal({ title: "Try Again!", text: json.message, icon: "error" });
+        swal({
+          title: "Try Again!",
+          text: json.message || "Something went wrong",
+          icon: "error",
+        });
       }
     } catch (err) {
       swal({ title: "Try Again!", text: "Server error!", icon: "error" });
@@ -298,7 +306,11 @@ const Signup = (props) => {
                   onChange={onChange}
                 />
               </div>
-              <button type="submit" className="btn btn-primary">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ backgroundColor: "#0d6efd" }}
+              >
                 Create Account
               </button>
             </form>

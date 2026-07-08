@@ -217,7 +217,7 @@ const Login = () => {
         });
         google.accounts.id.renderButton(document.getElementById("googlebtn"), {
           theme: "outline",
-          size: "medium",
+          size: "large",
           shape: "pill",
           text: "continue_with",
           logo_alignment: "center",

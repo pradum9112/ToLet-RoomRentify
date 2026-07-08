@@ -6,7 +6,7 @@ import { url } from "../../utils/Constants";
 
 const ForgotPass = (props) => {
   const [credentials, setCredentials] = useState({
-    email: props.email,
+    email: props.email || "",
     password: "",
     authcode: null,
   });
@@ -31,7 +31,7 @@ const ForgotPass = (props) => {
     event.preventDefault();
     if (validateMail()) {
       try {
-        const response = await fetch(`${url}/fogotpassword/`, {
+        const response = await fetch(`${url}/forgotpassword/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -45,7 +45,7 @@ const ForgotPass = (props) => {
 
         if (json.success === true) {
           swal({
-            title: "Check your mail!",
+            title: "Good job!",
             text: "mail sent successfully!",
             icon: "success",
             button: "Ok!",
@@ -54,7 +54,7 @@ const ForgotPass = (props) => {
         } else {
           swal({
             title: "Try Again!",
-            text: "error",
+            text: json.message || "Something went wrong. Please try again.",
             icon: "error",
             button: "Ok!",
           });
@@ -75,7 +75,7 @@ const ForgotPass = (props) => {
     event.preventDefault();
     if (validateForm()) {
       try {
-        const response = await fetch(`${url}/fogotpassword/verify`, {
+        const response = await fetch(`${url}/forgotpassword/verify`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

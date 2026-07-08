@@ -33,7 +33,7 @@ export function UserContextProvider({ children }) {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${currentToken}`,
-        "token": currentToken,        // ← dono bhej rahe hain
+        "token": currentToken,        
       },
     });
 
