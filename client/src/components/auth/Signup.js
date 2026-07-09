@@ -49,7 +49,7 @@ const Signup = (props) => {
 
       google.accounts.id.renderButton(document.getElementById("googlebtn"), {
         theme: "outline",
-        size: "medium",
+        size: "large",
         text: "continue_with",
         shape: "pill",
         logo_alignment: "center",
@@ -106,8 +106,8 @@ const Signup = (props) => {
       } else {
         // User exists with different method
         swal({
-          title: "Account Already Exists",
-          text: json.message || "Please login with your email and password.",
+          title: "Account Already Exist",
+          text: json.message || "User with given email id already exist. Please Login",
           icon: "info",
         });
       }
@@ -225,7 +225,11 @@ const Signup = (props) => {
         setIslogin(true);
         history("/");
       } else {
-        swal({ title: "Try Again!", text: json.message, icon: "error" });
+        swal({
+          title: "Account Already Exist",
+          text: json.message || "User with given email id already exist. Please Login",
+          icon: "error",
+        });
       }
     } catch (err) {
       swal({ title: "Try Again!", text: "Server error!", icon: "error" });
@@ -470,7 +474,7 @@ const Signup = (props) => {
                   </span>
                 )}
               </div>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ backgroundColor: "#0d6efd" }}>
                 Verify OTP
               </button>
             </form>

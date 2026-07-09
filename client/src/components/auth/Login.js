@@ -218,8 +218,8 @@ const Login = () => {
         google.accounts.id.renderButton(document.getElementById("googlebtn"), {
           theme: "outline",
           size: "large",
-          shape: "pill",
           text: "continue_with",
+          shape: "pill",
           logo_alignment: "center",
           width: "320",
         });

@@ -57,9 +57,9 @@ const io = require("socket.io")(server, {
       // "http://localhost:3000", 
       "https://to-let-room-rentify.vercel.app"
     ],
-    // credentials: true,
-    // methods: ["GET", "POST", "PUT", "DELETE"],
-    // allowedHeaders: ["Content-Type", "Authorization", "token"]
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization", "token"]
   },
 });
 

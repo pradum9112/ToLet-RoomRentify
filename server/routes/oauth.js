@@ -28,7 +28,7 @@ Router.post(
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: "User with this email already exists. Please login.",
+          message: "User with given email id already exist. Please Login.",
         });
       }
 
@@ -94,7 +94,7 @@ Router.post(
           return res.status(200).json({
             success: false,
             requireSignup: false,
-            message: "User already exists with different login method.",
+            message: "User with given email id already exist. Please Login",
           });
         }
         return res.status(200).json({ success: false, requireSignup: true });

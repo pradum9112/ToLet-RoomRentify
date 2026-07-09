@@ -160,7 +160,7 @@ Router.post(
         .status(400)
         .json({
           success: false,
-          error: "User with given email id already exist.",
+          error: "User with given email id already exist. Please Login.",
         });
     }
 
