@@ -1,50 +1,39 @@
 const mongoose = require("mongoose");
-const passportlocalmongoose = require("passport-local-mongoose");
+const passportLocalMongoose = require("passport-local-mongoose");
 const findOrCreate = require("mongoose-findorcreate");
 
 const UserSchema = new mongoose.Schema({
-  firstName: {
-    type: String,
-    default: null,
+  firstName: { type: String, default: null },
+  lastName: { type: String, default: null },
+  username: { type: String, default: null },
+  email: { 
+    type: String, 
+    unique: true, 
+    sparse: true,
+    default: null 
   },
-  username: {
-    type: String,
-    default: null,
+  phone: { 
+    type: String, 
+    unique: true, 
+    sparse: true,
+    default: null 
   },
-  lastName: {
+  pic: {
     type: String,
-    default: null,
+    default: "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
   },
-  email: {
+  password: { type: String, default: null },
+  googleId: { 
     type: String,
     unique: true,
-    default: null,
+    sparse: true,
+    default: null 
   },
-  phone: {
-    type: String,
-    unique: true,
-    default: null,
-  },
-  pic:{
-    type:String,
-    default:"https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
-  },
-  password: {
-    type: String,
-    default: null,
-  },
-  googleId: {
-    type: Number,
-    default: null,
-  },
-  date: {
-    type: Date,
-    default: Date.now,
-  },
-  saved : Array,
+  date: { type: Date, default: Date.now },
+  saved: { type: Array, default: [] },
 });
 
-UserSchema.plugin(passportlocalmongoose);
+UserSchema.plugin(passportLocalMongoose);
 UserSchema.plugin(findOrCreate);
 
 UserSchema.methods.addsaveddata = async function (saves) {
@@ -53,10 +42,9 @@ UserSchema.methods.addsaveddata = async function (saves) {
     await this.save();
     return this.saved;
   } catch (error) {
-    console.log(error + "error at the time of saved addition");
+    console.log("Error at saved addition:", error);
   }
 };
 
-// const User = mongoose.model("users", UserSchema);
 const User = mongoose.model("User", UserSchema);
 module.exports = User;
