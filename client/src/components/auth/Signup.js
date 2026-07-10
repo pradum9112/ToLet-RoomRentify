@@ -39,8 +39,7 @@ const Signup = (props) => {
       if (typeof google === "undefined" || !google.accounts) return;
 
       google.accounts.id.initialize({
-        client_id:
-          "556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
+        client_id:process.env.REACT_APP_GOOGLE_CLIENT_ID,
         callback: handleCallbackResponse,
         auto_select: false,
         cancel_on_tap_outside: false,
@@ -168,32 +167,43 @@ const Signup = (props) => {
     }
   };
 
-  const sendMail = async (event) => {
-    event.preventDefault();
-    if (!validateForm()) return;
+ const sendMail = async (event) => {
+  event.preventDefault();
+  if (!validateForm()) return;
 
-    try {
-      const response = await fetch(`${url}/auth/signup/email`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: credentials.email }),
+  try {
+    const response = await fetch(`${url}/auth/signup/email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: credentials.email }),
+    });
+
+    // Safe JSON parse
+    const json = await response.json().catch(() => ({}));
+
+    if (json.success === true) {
+      swal({
+        title: "Good job!",
+        text: "Verification code sent to email!",
+        icon: "success",
       });
-      const json = await response.json();
-
-      if (json.success) {
-        swal({
-          title: "Good job!",
-          text: "Verification code sent to email!",
-          icon: "success",
-        });
-        setSendOtp(true);
-      } else {
-        swal({ title: "Try Again!", text: json.message, icon: "error" });
-      }
-    } catch (err) {
-      swal({ title: "Try Again!", text: "Server error!", icon: "error" });
+      setSendOtp(true);
+    } else {
+      swal({
+        title: "Account Already Exist",
+        text: json.message || "User with given email id already exist. Please Login",
+        icon: "error",
+      });
     }
-  };
+  } catch (err) {
+    console.error(err);
+    swal({ 
+      title: "Try Again!", 
+      text: "Server error! Please try again later.", 
+      icon: "error" 
+    });
+  }
+};
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -213,6 +223,7 @@ const Signup = (props) => {
         }),
       });
       const json = await response.json();
+      
 
       if (json.success) {
         swal({
@@ -224,7 +235,7 @@ const Signup = (props) => {
         localStorage.setItem("userInfo", JSON.stringify(json));
         setIslogin(true);
         history("/");
-      } else {
+      } else {  
         swal({
           title: "Account Already Exist",
           text: json.message || "User with given email id already exist. Please Login",
