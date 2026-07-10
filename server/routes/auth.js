@@ -24,7 +24,7 @@ Router.post(
       min: 10,
       max: 10,
     }),
-    body("fname", "Enter a valid fist name of minimum 3 digits").isLength({
+    body("fname", "Enter a valid first name of minimum 3 digits").isLength({
       min: 3,
     }),
     body("lname", "Enter a valid last name of minimum 3 digits").isLength({
@@ -32,25 +32,22 @@ Router.post(
     }),
     body(
       "authcode",
-      "Enter 6 digit verification code send to your email"
+      "Enter 6 digit verification code send to your email",
     ).isLength({ min: 6 }),
   ],
-  // if there is validation problem
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ success: false, message: errors.array() });
     }
 
-    // To check wheather the user exists already with the given email
+    // Check if user already exists
     let user = await User.findOne({ email: req.body.email });
     if (user) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "User with given email id already exist. Please Login",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "User with given email id already exist. Please Login",
+      });
     }
 
     try {
@@ -59,89 +56,54 @@ Router.post(
       });
 
       if (!storeAuthCode) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "No such user with this email requested to create a new account",
-            success: false,
-          });
+        return res.status(400).json({
+          success: false,
+          message:
+            "No such user with this email requested to create a new account",
+        });
       }
 
       if (storeAuthCode.authcode !== req.body.authcode) {
         return res
           .status(400)
-          .json({ message: "Wrong Verification code", success: false });
+          .json({ success: false, message: "Wrong Verification code" });
       }
 
-      if (storeAuthCode.authcode === req.body.authcode) {
-        try {
-          bcrypt.genSalt(10, async (error, salt) => {
-            bcrypt.hash(
-              req.body.password,
-              salt,
-              async (error, hashedPassword) => {
-                // Store hash in your DB and to Creates a new user
-                try {
-                  let fullname = req.body.fname + " " + req.body.lname;
-                  let user = await User.create({
-                    firstName: req.body.fname,
-                    lastName: req.body.lname,
-                    email: req.body.email,
-                    username: fullname,
-                    phone: req.body.phone,
-                    password: hashedPassword,
-                  });
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-                  // to generation a token or a cookie to identify the user
-                  const data = {
-                    user: {
-                      user: user.id, // id is obtained form mongoose
-                    },
-                  };
+      // Create user
+      let fullname = req.body.fname + " " + req.body.lname;
+      let newUser = await User.create({
+        firstName: req.body.fname,
+        lastName: req.body.lname,
+        email: req.body.email,
+        username: fullname,
+        phone: req.body.phone,
+        password: hashedPassword,
+      });
 
-                  // console.log(data);
-                  const authToken = jwt.sign(data, JWT_SECRET);
-                  // console.log(authToken);
+      // Generate token
+      const payload = { user: { id: newUser.id } };
+      const authToken = jwt.sign(payload, JWT_SECRET);
 
-                  const msg = `Dear ${
-                    req.body.fname + " " + req.body.lname
-                  },<br><br>
-                                Congratulations on taking the first step towards getting dream stays!  Get ready to embark on a seamless journey towards your dream . Our team support you throughout your journey.<br> 
-                                Thank you for choosing us.<br><br>
-                                Best regards,<br> Pradum Sonkar`;
+      // Send welcome email
+      const msg = `Dear ${fullname},<br><br>Congratulations on taking the first step towards getting dream stays! ...`;
+      Mailer(req.body.email, "Welcome to TO-LET site!", msg).catch((err) =>
+        console.error("Email error:", err),
+      );
 
-                  const sub = "Welcome to TO-LET site!";
-
-                  Mailer(req.body.email, sub, msg);
-
-                  // console.log('success', success);
-
-                  const success = true;
-                  res
-                    .status(200)
-                    .json({ success, authToken, message: "verified" });
-                } catch (error) {
-                  console.error(error.message);
-                  res
-                    .status(500)
-                    .json({ message: "Some error occured", success: false });
-                }
-              }
-            );
-          });
-        } catch (error) {
-          console.error(error.message);
-          res
-            .status(500)
-            .json({ message: "Some error occured", success: false });
-        }
-      }
+      res.status(200).json({
+        success: true,
+        authToken,
+        message: "verified",
+      });
     } catch (error) {
       console.error(error.message);
-      res.status(500).json({ message: "Some error occured", success: false });
+      res.status(500).json({ success: false, message: "Some error occured" });
     }
-  }
+  },
 );
 
 Router.post(
@@ -156,12 +118,10 @@ Router.post(
 
     let user = await User.findOne({ email: req.body.email });
     if (user) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: "User with given email id already exist. Please Login.",
-        });
+      return res.status(400).json({
+        success: false,
+        error: "User with given email id already exist. Please Login.",
+      });
     }
 
     // sending otp for verification of email
@@ -173,7 +133,7 @@ Router.post(
 
       const authCode = Math.floor(100000 + Math.random() * 900000);
       authCodeCheck = authCode;
-
+      2;
       const msg = `
     Thank you for choosing our site TO-LET.<br><br>
     Use the OTP below to verify your account:<br><br>
@@ -189,7 +149,7 @@ Router.post(
       let mailSent = await Mailer(
         req.body.email,
         "Your comfortable stays on way!",
-        msg
+        msg,
       );
       console.log(mailSent);
 
@@ -215,7 +175,7 @@ Router.post(
       console.error(error.message);
       res.status(500).json({ message: "Some error occured", success: false });
     }
-  }
+  },
 );
 
 // to authenticate a user while the user login  login is not required by user
@@ -224,7 +184,9 @@ Router.post(
   [
     body("email", "Enter a valid email address").isEmail(),
     body("password", "Password cannot be blank").exists(),
-    body("password", "Enter a valid password of minimum 8 digits").isLength({ min: 8 }),
+    body("password", "Enter a valid password of minimum 8 digits").isLength({
+      min: 8,
+    }),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -241,38 +203,42 @@ Router.post(
         });
       }
 
-      bcrypt.compare(req.body.password, user.password, async (error, compareResult) => {
-        if (compareResult === false) {
-          return res.status(400).json({
-            success: false,
-            message: "Invalid email or password"
+      bcrypt.compare(
+        req.body.password,
+        user.password,
+        async (error, compareResult) => {
+          if (compareResult === false) {
+            return res.status(400).json({
+              success: false,
+              message: "Invalid email or password",
+            });
+          }
+
+          // FIXED PAYLOAD - Consistent with Google Login
+          const payload = {
+            user: {
+              id: user.id, 
+            },
+          };
+
+          const authToken = jwt.sign(payload, JWT_SECRET);
+
+          res.json({
+            success: true,
+            authToken,
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            pic: user.pic,
+            message: "verified",
           });
-        }
-
-        // FIXED PAYLOAD - Consistent with Google Login
-        const payload = {
-          user: {
-            id: user.id,           // ← Yeh important change
-          },
-        };
-
-        const authToken = jwt.sign(payload, JWT_SECRET);
-
-        res.json({
-          success: true,
-          authToken,
-          _id: user._id,
-          username: user.username,
-          email: user.email,
-          pic: user.pic,
-          message: "verified",
-        });
-      });
+        },
+      );
     } catch (error) {
       console.error(error.message);
       res.status(500).json({ message: "Some error occured", success: false });
     }
-  }
+  },
 );
 
 // Route -3 Obtaining details from jws token or decrypting token  login is required by user
@@ -280,15 +246,13 @@ Router.post("/verifyuser", fetchUser, async (req, res) => {
   try {
     const userId = req.userId;
     const userWithId = await User.findById(userId).select(
-      "firstName lastName email"
+      "firstName lastName email",
     );
     if (!userWithId) {
-      return res
-        .status(401)
-        .send({
-          message: "Please authenticate using a valid token",
-          success: false,
-        });
+      return res.status(401).send({
+        message: "Please authenticate using a valid token",
+        success: false,
+      });
     } else {
       res.send({ success: true, message: "verified", data: userWithId });
     }
@@ -311,12 +275,10 @@ Router.post(
 
     let user = await User.findOne({ email: req.body.email });
     if (!user) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "No User with given email id exists.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "No User with given email id exists.",
+      });
     }
 
     // sending otp for verification of email
@@ -332,7 +294,7 @@ Router.post(
         await Mailer(
           req.body.email,
           "Verification Code For *ACCOUNT DELETION*",
-          String("Your verification code is " + authCode)
+          String("Your verification code is " + authCode),
         )
       ) {
         try {
@@ -355,7 +317,7 @@ Router.post(
       console.error(error.message);
       res.status(500).json({ message: "Some error occured", success: false });
     }
-  }
+  },
 );
 
 Router.post(
@@ -368,7 +330,7 @@ Router.post(
     }),
     body(
       "authcode",
-      "Enter 6 digit verification code send to your email"
+      "Enter 6 digit verification code send to your email",
     ).isLength({ min: 6 }),
   ],
   // if there is validation problem
@@ -392,13 +354,11 @@ Router.post(
       });
 
       if (!storeAuthCode) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "No such user with this email requested to delete a new account",
-            success: false,
-          });
+        return res.status(400).json({
+          message:
+            "No such user with this email requested to delete a new account",
+          success: false,
+        });
       }
 
       if (storeAuthCode.authcode !== req.body.authcode) {
@@ -414,12 +374,10 @@ Router.post(
             user.password,
             async (error, compareResult) => {
               if (compareResult === false) {
-                return res
-                  .status(400)
-                  .json({
-                    success: false,
-                    message: "Invalid email or password",
-                  });
+                return res.status(400).json({
+                  success: false,
+                  message: "Invalid email or password",
+                });
               }
 
               await User.deleteOne({ email: req.body.email });
@@ -450,7 +408,7 @@ Router.post(
                 success: true,
                 message: "Account deleted successfully",
               });
-            }
+            },
           );
         } catch (error) {
           console.error(error.message);
@@ -463,5 +421,5 @@ Router.post(
       console.error(error.message);
       res.status(500).json({ message: "Some error occured", success: false });
     }
-  }
+  },
 );

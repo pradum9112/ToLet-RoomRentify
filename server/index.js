@@ -54,8 +54,8 @@ const io = require("socket.io")(server, {
   pingTimeout: 60000,
   cors: {
     origin: [
-      // "http://localhost:3000", 
       "https://to-let-room-rentify.vercel.app"
+      // "http://localhost:3000", 
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
