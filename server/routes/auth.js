@@ -106,77 +106,43 @@ Router.post(
   },
 );
 
-Router.post(
-  "/signup/email",
-  [body("email", "Enter a valid email address").isEmail()],
-  async (req, res) => {
-    const errors = validationResult(req);
+const sendMail = async (event) => {
+  event.preventDefault();
+  if (!validateForm()) return;
 
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: errors.array() });
-    }
+  try {
+    const response = await fetch(`${url}/auth/signup/email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: credentials.email }),
+    });
 
-    let user = await User.findOne({ email: req.body.email });
-    if (user) {
-      return res.status(400).json({
-        success: false,
-        error: "User with given email id already exist. Please Login.",
+    // Safe JSON parse
+    const json = await response.json().catch(() => ({}));
+
+    if (json.success === true) {
+      swal({
+        title: "Good job!",
+        text: "Verification code sent to email!",
+        icon: "success",
+      });
+      setSendOtp(true);
+    } else {
+      swal({
+        title: "Account Already Exist",
+        text: json.message || "User with given email id already exist. Please Login",
+        icon: "error",
       });
     }
-
-    // sending otp for verification of email
-    try {
-      const trashCode = await PassValidator.findOneAndDelete({
-        email: req.body.email,
-      });
-      // console.log(trashCode);
-
-      const authCode = Math.floor(100000 + Math.random() * 900000);
-      authCodeCheck = authCode;
-      2;
-      const msg = `
-    Thank you for choosing our site TO-LET.<br><br>
-    Use the OTP below to verify your account:<br><br>
-    <span style="display: inline-block; padding: 10px 20px; background-color: #f0f0f0; 
-        font-size: 18px; font-weight: bold; color: #333; border-radius: 8px;">
-        ${authCode}
-    </span><br><br>
-    If you face any issues while signing up, feel free to reach out to our support team.<br><br>
-    Best regards,<br>
-    Pradum Sonkar
-`;
-
-      let mailSent = await Mailer(
-        req.body.email,
-        "Your comfortable stays on way!",
-        msg,
-      );
-      console.log(mailSent);
-
-      if (mailSent) {
-        try {
-          let storeAuthCode = await PassValidator.create({
-            email: req.body.email,
-            authcode: authCode,
-          });
-          res.json({ success: true, message: "Email Send" });
-        } catch (error) {
-          console.log("here1");
-          console.error(error.message);
-          res
-            .status(500)
-            .json({ message: "Some error occured", success: false });
-        }
-      } else {
-        console.log("here");
-        res.status(500).json({ message: "Some error occured", success: false });
-      }
-    } catch (error) {
-      console.error(error.message);
-      res.status(500).json({ message: "Some error occured", success: false });
-    }
-  },
-);
+  } catch (err) {
+    console.error(err);
+    swal({ 
+      title: "Try Again!", 
+      text: "Server error! Please try again later.", 
+      icon: "error" 
+    });
+  }
+};
 
 // to authenticate a user while the user login  login is not required by user
 Router.post(
