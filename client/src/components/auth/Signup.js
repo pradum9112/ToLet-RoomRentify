@@ -39,7 +39,8 @@ const Signup = (props) => {
       if (typeof google === "undefined" || !google.accounts) return;
 
       google.accounts.id.initialize({
-        client_id:process.env.REACT_APP_GOOGLE_CLIENT_ID,
+        // client_id:process.env.REACT_APP_GOOGLE_CLIENT_ID,
+        client_id:"556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
         callback: handleCallbackResponse,
         auto_select: false,
         cancel_on_tap_outside: false,

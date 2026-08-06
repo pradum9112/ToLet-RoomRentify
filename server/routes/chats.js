@@ -5,6 +5,8 @@ const Chat = require("../models/ChatModel.js");
 const Message = require("../models/MessageModel");
 const User = require("../models/User");
 
+
+
 const Router = express.Router();
 
 ////////////////////get user search Chat//////////////////////
@@ -37,7 +39,6 @@ Router.post(
     console.log("check2");
 
     var isChat = await Chat.find({
-      isGroupChat: false,
       $and: [
         { users: { $elemMatch: { $eq: req.userId } } },
         { users: { $elemMatch: { $eq: guestuserId } } },
@@ -58,7 +59,6 @@ Router.post(
     } else {
       var chatData = {
         chatName: "sender",
-        isGroupChat: false,
         users: [req.userId, guestuserId],
       };
 
@@ -85,7 +85,6 @@ Router.get(
     try {
       Chat.find({ users: { $elemMatch: { $eq: req.userId } } })
         .populate("users", "-password")
-        .populate("groupAdmin", "-password")
         .populate("latestMessage")
         .sort({ updatedAt: -1 })
         .then(async (results) => {
@@ -102,126 +101,7 @@ Router.get(
   })
 );
 
-//////////////create group chat///////////////////////////////////
 
-Router.post(
-  "/group",
-  asyncHandler(async (req, res) => {
-    if (!req.body.users || !req.body.name) {
-      return res.status(400).send({ message: "Please Fill all the feilds" });
-    }
-
-    var users = JSON.parse(req.body.users);
-
-    if (users.length < 2) {
-      return res
-        .status(400)
-        .send("More than 2 users are required to form a group chat");
-    }
-
-    users.push(req.user);
-
-    try {
-      const groupChat = await Chat.create({
-        chatName: req.body.name,
-        users: users,
-        isGroupChat: true,
-        groupAdmin: req.user,
-      });
-
-      const fullGroupChat = await Chat.findOne({ _id: groupChat._id })
-        .populate("users", "-password")
-        .populate("groupAdmin", "-password");
-
-      res.status(200).json(fullGroupChat);
-    } catch (error) {
-      res.status(400);
-      throw new Error(error.message);
-    }
-  })
-);
-
-/////////////////////////rename group////////////////////////////
-
-Router.put(
-  "/rename",
-  asyncHandler(async (req, res) => {
-    const { chatId, chatName } = req.body;
-
-    const updatedChat = await Chat.findByIdAndUpdate(
-      chatId,
-      {
-        chatName: chatName,
-      },
-      {
-        new: true,
-      }
-    )
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password");
-
-    if (!updatedChat) {
-      res.status(404);
-      throw new Error("Chat Not Found");
-    } else {
-      res.json(updatedChat);
-    }
-  })
-);
-
-//////////////////////remove from group//////////////////////////
-
-Router.put(
-  "/removefromgroup",
-  asyncHandler(async (req, res) => {
-    const { chatId, userId } = req.body;
-    const removed = await Chat.findByIdAndUpdate(
-      chatId,
-      {
-        $pull: { users: userId },
-      },
-      {
-        new: true,
-      }
-    )
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password");
-
-    if (!removed) {
-      res.status(404);
-      throw new Error("Chat Not Found");
-    } else {
-      res.json(removed);
-    }
-  })
-);
-
-//////////////////////////add to group///////////////////////////
-
-Router.put(
-  "/addtogroup",
-  asyncHandler(async (req, res) => {
-    const { chatId, userId } = req.body;
-    const added = await Chat.findByIdAndUpdate(
-      chatId,
-      {
-        $push: { users: userId },
-      },
-      {
-        new: true,
-      }
-    )
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password");
-
-    if (!added) {
-      res.status(404);
-      throw new Error("Chat Not Found");
-    } else {
-      res.json(added);
-    }
-  })
-);
 
 //////////////////get all message//////////////////////////////
 
@@ -279,6 +159,42 @@ Router.post(
     } catch (error) {
       res.status(400);
       throw new Error(error.message);
+    }
+  })
+);
+
+
+
+////////////////// Delete Whole Chat Route /////////////////////
+
+Router.delete(
+  "/deletechat/:chatId",
+  fetchUser,
+  asyncHandler(async (req, res) => {
+    try {
+      const { chatId } = req.params;
+
+      // 1. Delete all messages associated with this chat
+      await Message.deleteMany({ chat: chatId });
+
+      // 2. Delete the chat instance
+      const deletedChat = await Chat.findByIdAndDelete(chatId);
+
+      if (!deletedChat) {
+        return res
+          .status(404)
+          .json({ message: "Chat not found", success: false });
+      }
+
+      return res.status(200).json({
+        message: "Whole chat deleted successfully",
+        success: true,
+      });
+    } catch (error) {
+      console.error("Delete Chat Error:", error);
+      return res
+        .status(500)
+        .json({ message: "Server error while deleting chat", success: false });
     }
   })
 );

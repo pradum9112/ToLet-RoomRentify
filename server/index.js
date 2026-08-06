@@ -48,55 +48,94 @@ const server = app.listen(port, () => {
 
 
 ////////////////////////// real time chat functionality started //////////////////////////////
-////////////////////////// real time chat functionality started //////////////////////////////
+
+require("dotenv").config();
+
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? [process.env.FRONTEND_URL || "https://to-let-room-rentify.vercel.app"]
+    : ["http://localhost:3000", "http://localhost:5173"];
 
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
   cors: {
-    origin: [
-      "https://to-let-room-rentify.vercel.app"
-      // "http://localhost:3000", 
-    ],
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization", "token"]
+    allowedHeaders: ["Content-Type", "Authorization", "token"],
   },
 });
 
 io.on("connection", (socket) => {
   console.log("Connected to socket.io");
 
+  // Setup - User personal room
   socket.on("setup", (userData) => {
+    if (!userData || !userData._id) {
+      return console.log("Invalid userData in setup");
+    }
     socket.join(userData._id);
-    console.log("user joined room"+ userData.email);
+    console.log("user joined room: " + (userData.email || userData._id));
     socket.emit("connected");
   });
 
+  // Join specific chat room
   socket.on("join chat", (room) => {
+    if (!room) return;
     socket.join(room);
-    console.log("user joined room"+ room);
+    console.log("user joined chat room: " + room);
   });
 
+  // New Message Event (Fixed)
   socket.on("new message", (newMessageRecieved) => {
-    var chat = newMessageRecieved.chat;
+    try {
+      console.log("New Message on Server:", newMessageRecieved?._id);
 
-    if (!chat.users) return console.log("chat.users not defined");
+      if (!newMessageRecieved) {
+        return console.log("newMessageRecieved is null/undefined");
+      }
 
-    chat.users.forEach((user) => {
-      if (user._id == newMessageRecieved.sender._id) return;
+      const chat = newMessageRecieved.chat;
 
-      socket.in(user._id).emit("message recieved", newMessageRecieved);
-    });
+      if (!chat) {
+        return console.log("chat is null/undefined");
+      }
+
+      if (!chat.users || !Array.isArray(chat.users)) {
+        return console.log("chat.users not defined or not an array");
+      }
+
+      chat.users.forEach((user) => {
+        if (!user || !user._id) return;
+
+        // Don't send to sender
+        if (
+          user._id.toString() === newMessageRecieved.sender?._id?.toString()
+        ) {
+          return;
+        }
+
+        // Emit to personal room of other users
+        socket.in(user._id.toString()).emit("message recieved", newMessageRecieved);
+      });
+    } catch (error) {
+      console.log("Error in new message event:", error.message);
+    }
   });
 
-  socket.on("typing", (room) => socket.in(room).emit("typing"));
-  socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
+  // Typing Indicator
+  socket.on("typing", (room) => {
+    if (room) socket.in(room).emit("typing");
+  });
 
-  socket.off("setup", () => {
+  socket.on("stop typing", (room) => {
+    if (room) socket.in(room).emit("stop typing");
+  });
+
+  // Disconnect
+  socket.on("disconnect", () => {
     console.log("USER DISCONNECTED");
-    socket.leave(userData._id);
   });
 });
 
-//////////////////////////real time chat functionality ended//////////////////////////////
-//////////////////////////real time chat functionality ended//////////////////////////////
+////////////////////////// real time chat functionality ended //////////////////////////////

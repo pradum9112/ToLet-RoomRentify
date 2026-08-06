@@ -41,11 +41,11 @@ Router.post(
         email: req.body.email,
         phone: req.body.phone,
         password: null,
-        googleId: req.body.googleId,        // ← String mein rakha
+        googleId: req.body.googleId,        
       });
 
       const payload = { user: { id: user.id } };
-      const authToken = jwt.sign(payload, JWT_SECRET);
+      const authToken = jwt.sign(payload, JWT_SECRET,{ expiresIn: "1h" });
 
       // Send Welcome Email
       const msg = `Dear ${fullname},<br><br>
@@ -102,7 +102,7 @@ Router.post(
 
       // User exists with Google
       const payload = { user: { id: user.id } };
-      const authToken = jwt.sign(payload, JWT_SECRET);
+      const authToken = jwt.sign(payload, JWT_SECRET,{ expiresIn: "1h" });
 
       res.json({
         success: true,
