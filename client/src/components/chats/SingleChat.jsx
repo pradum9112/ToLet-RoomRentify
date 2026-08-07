@@ -31,7 +31,7 @@ import { url } from "../../utils/Constants";
 const ENDPOINT =
   window.location.hostname === "localhost"
     ? "http://localhost:5101"
-    :"https://tolet-roomonrent-server.onrender.com";
+    :"https://tolet-roomrentify.onrender.com";
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [messages, setMessages] = useState([]);
