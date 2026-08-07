@@ -31,8 +31,7 @@ import { url } from "../../utils/Constants";
 const ENDPOINT =
   window.location.hostname === "localhost"
     ? "http://localhost:5101"
-    : process.env.REACT_APP_API_URL ||
-      "https://tolet-roomonrent-server.onrender.com";
+    :"https://tolet-roomonrent-server.onrender.com";
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [messages, setMessages] = useState([]);
