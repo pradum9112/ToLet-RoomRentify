@@ -51,25 +51,10 @@ const server = app.listen(port, () => {
 
 require("dotenv").config();
 
-// const allowedOrigins =
-//   process.env.NODE_ENV === "production"
-//     ? [process.env.FRONTEND_URL || "https://to-let-room-rentify.vercel.app"]
-//     : ["http://localhost:3000", "http://localhost:5173"];
-
-// const io = require("socket.io")(server, {
-//   pingTimeout: 60000,
-//   cors: {
-//     origin: allowedOrigins,
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//     allowedHeaders: ["Content-Type", "Authorization", "token"],
-//   },
-// });
-
-const allowedOrigins = [
-  // "http://localhost:3000",
-  "https://to-let-room-rentify.vercel.app",
-];
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? [process.env.FRONTEND_URL || "https://to-let-room-rentify.vercel.app"]
+    : ["http://localhost:3000", "http://localhost:5173"];
 
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
