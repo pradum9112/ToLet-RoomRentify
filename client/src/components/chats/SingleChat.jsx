@@ -1,219 +1,289 @@
+import io from "socket.io-client";
 import { FormControl } from "@chakra-ui/form-control";
 import { Input } from "@chakra-ui/input";
 import { Box, Text } from "@chakra-ui/layout";
-import "../../assets/styles/chat.css";
-import { IconButton, Spinner, useToast } from "@chakra-ui/react";
-import { getSender, getSenderFull } from "./config/ChatLogics";
-import { useEffect, useState, useRef } from "react";
+import {
+  IconButton,
+  Spinner,
+  useToast,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  Button,
+  useDisclosure,
+} from "@chakra-ui/react";
+import { ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
+import { useEffect, useState, useRef, useContext, useMemo } from "react";
 import axios from "axios";
-import { ArrowBackIcon } from "@chakra-ui/icons";
-import ProfileModal from "./miscellaneous/ProfileModal";
-import UpdateGroupChatModal from "./miscellaneous/UpdateGroupChatModal";
+
+import { getSender, getSenderFull } from "./config/ChatLogics";
 import ScrollableChat from "./ScrollableChat";
-import io from "socket.io-client";
+import ProfileModal from "./miscellaneous/ProfileModal";
 import Lottie from "react-lottie";
 import animationData from "../../assets/data/typing.json";
-import { useContext } from "react";
-import { UserContext } from "../../context/UserContext.jsx";
-import {url} from "../../utils/Constants";
 
-const ENDPOINT = process.env.REACT_APP_API_URL || "https://tolet-roomonrent-server.onrender.com";
-let selectedChatCompare;
+import { UserContext } from "../../context/UserContext.jsx";
+import { url } from "../../utils/Constants";
+
+const ENDPOINT =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5101"
+    : process.env.REACT_APP_API_URL ||
+      "https://tolet-roomonrent-server.onrender.com";
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [newMessage, setNewMessage] = useState("");
-
   const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
   const [istyping, setIsTyping] = useState(false);
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = useRef();
   const toast = useToast();
   const socketRef = useRef(null);
+  
+  // Ref to always track latest selectedChat inside socket handlers
+  const selectedChatCompareRef = useRef(null);
 
-  const {
-    selectedChat,
-    setSelectedChat,
-    user,
-    notification,
-    setNotification,
-  } = useContext(UserContext);
+  const { selectedChat, setSelectedChat, user, setNotification } =
+    useContext(UserContext);
 
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: animationData,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
-  };
-
-  //for socket get initallize first we put this use effect at the top
-  useEffect(() => {
-    if (!user) return;
-    socketRef.current = io(ENDPOINT);
-    socketRef.current.emit("setup", user);
-    socketRef.current.on("connected", () => setSocketConnected(true));
-    socketRef.current.on("typing", () => setIsTyping(true));
-    socketRef.current.on("stop typing", () => setIsTyping(false));
-    return () => {
-      socketRef.current.disconnect();
-    };
+  const currentUser = useMemo(() => {
+    return user || JSON.parse(localStorage.getItem("userInfo") || "{}");
   }, [user]);
 
-  const fetchMessages = async () => {
-    if (!selectedChat) return;
+  const defaultOptions = useMemo(
+    () => ({
+      loop: true,
+      autoplay: true,
+      animationData: animationData,
+      rendererSettings: { preserveAspectRatio: "xMidYMid slice" },
+    }),
+    [],
+  );
 
-    try {
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          token: localStorage.getItem("token"),
-        },
-      };
+  // Keep Ref updated with selectedChat
+  useEffect(() => {
+    selectedChatCompareRef.current = selectedChat;
+  }, [selectedChat]);
 
-      setLoading(true);
+  // ==================== SOCKET SETUP & LISTENERS ====================
+  useEffect(() => {
+    if (!currentUser?._id) return;
 
-      const { data } = await axios.get(
-        `${url}/chats/message/${selectedChat._id}`,
-        config
-      );
-      setMessages(data);
-      setLoading(false);
-      socketRef.current.emit("join chat", selectedChat._id);
-    } catch (error) {
-      toast({
-        title: "Error Occured!",
-        description: "Failed to Load the Messages",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "bottom",
-      });
-    }
-  };
+    socketRef.current = io(ENDPOINT);
+    socketRef.current.emit("setup", currentUser);
 
+    socketRef.current.on("connected", () => {
+      console.log("✅ SOCKET CONNECTED");
+      setSocketConnected(true);
+    });
+
+    socketRef.current.on("typing", () => setIsTyping(true));
+    socketRef.current.on("stop typing", () => setIsTyping(false));
+
+    // LIVE MESSAGE LISTENER
+    const messageHandler = (newMessageRecieved) => {
+      console.log("📩 MESSAGE RECEIVED:", newMessageRecieved);
+
+      const activeChat = selectedChatCompareRef.current;
+
+      if (!activeChat || activeChat._id !== newMessageRecieved.chat?._id) {
+        console.log("✅ NOTIFICATION MEIN ADD");
+        setNotification((prev) => {
+          if (prev.some((n) => n._id === newMessageRecieved._id)) return prev;
+          return [newMessageRecieved, ...prev];
+        });
+        setFetchAgain((prev) => !prev);
+      } else {
+        console.log("➡️ CURRENT CHAT MEIN ADD");
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === newMessageRecieved._id)) return prev;
+          return [...prev, newMessageRecieved];
+        });
+      }
+    };
+
+    const deleteHandler = (deletedChatId) => {
+      const activeChat = selectedChatCompareRef.current;
+      if (activeChat && activeChat._id === deletedChatId) {
+        setSelectedChat(null);
+        setMessages([]);
+        toast({ title: "Chat deleted", status: "info", duration: 3000, isClosable: true });
+      }
+      setFetchAgain((prev) => !prev);
+    };
+
+    socketRef.current.on("message recieved", messageHandler);
+    socketRef.current.on("chat deleted", deleteHandler);
+
+    return () => {
+      socketRef.current?.off("message recieved", messageHandler);
+      socketRef.current?.off("chat deleted", deleteHandler);
+      socketRef.current?.disconnect();
+    };
+  }, [currentUser?._id]);
+
+// SingleChat.jsx ke andar:
+
+// ==================== FETCH MESSAGES ====================
+const fetchMessages = async () => {
+  if (!selectedChat?._id) return;
+
+  try {
+    setLoading(true);
+    const { data } = await axios.get(
+      `${url}/chats/message/${selectedChat._id}`,
+      { headers: { token: localStorage.getItem("token") } },
+    );
+    setMessages(data);
+    socketRef.current?.emit("join chat", selectedChat._id);
+  } catch (error) {
+    toast({ title: "Failed to load messages", status: "error" });
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  if (selectedChat?._id) {
+    // 🟢 ADDED: Selected chat khulte hi us chat ke saare notifications clear kar do
+    setNotification((prev) =>
+      prev.filter((n) => n.chat?._id !== selectedChat._id)
+    );
+
+    fetchMessages();
+  }
+}, [selectedChat?._id]);
+
+  useEffect(() => {
+    fetchMessages();
+  }, [selectedChat?._id]);
+
+  // ==================== TYPING HANDLER ====================
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
-
-    if (!socketConnected) return;
+    if (!socketConnected || !selectedChat?._id) return;
 
     if (!typing) {
       setTyping(true);
       socketRef.current.emit("typing", selectedChat._id);
     }
-    let lastTypingTime = new Date().getTime();
-    let timerLength = 3000;
+
+    const lastTypingTime = new Date().getTime();
     setTimeout(() => {
-      let timeNow = new Date().getTime();
-      let timeDiff = timeNow - lastTypingTime;
-      if (timeDiff >= timerLength) {
+      if (new Date().getTime() - lastTypingTime >= 3000 && typing) {
         socketRef.current.emit("stop typing", selectedChat._id);
         setTyping(false);
       }
-    }, timerLength);
+    }, 3000);
   };
 
-  const sendMessage = async (event) => {
-    if (event.key === "Enter" && newMessage) {
+  // ==================== SEND MESSAGE ====================
+  const sendMessage = async (e) => {
+    if (e.key === "Enter" && newMessage.trim()) {
+      const messageText = newMessage.trim();
+      setNewMessage("");
+      socketRef.current?.emit("stop typing", selectedChat._id);
+
       try {
-        const config = {
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            token: localStorage.getItem("token"),
-          },
-        };
-        setNewMessage("");
         const { data } = await axios.post(
           `${url}/chats/message`,
-          {
-            content: newMessage,
-            chatId: selectedChat,
-          },
-          config
+          { content: messageText, chatId: selectedChat._id },
+          { headers: { token: localStorage.getItem("token") } },
         );
+
         socketRef.current.emit("new message", data);
-        setMessages([...messages, data]);
+        setMessages((prev) => [...prev, data]);
       } catch (error) {
-        toast({
-          title: "Error Occured!",
-          description: "Failed to send the Message",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-          position: "bottom",
-        });
+        toast({ title: "Failed to send message", status: "error" });
       }
     }
   };
 
-  useEffect(() => {
-    fetchMessages();
-    selectedChatCompare = selectedChat;
-  }, [selectedChat]); 
+  // ==================== DELETE CHAT ====================
+  const deleteChatHandler = async () => {
+    if (!selectedChat?._id) return;
 
-  useEffect(() => {
-    if (!socketRef.current) return;
-    const handler = (newMessageRecieved) => {
-      if (
-        !selectedChatCompare ||
-        selectedChatCompare._id !== newMessageRecieved.chat._id
-      ) {
-        setNotification((prev) =>
-          prev.find((n) => n._id === newMessageRecieved._id)
-            ? prev
-            : [newMessageRecieved, ...prev]
-        );
-        setFetchAgain((prev) => !prev);
-      } else {
-        setMessages((prev) => [...prev, newMessageRecieved]);
-      }
-    };
-    socketRef.current.on("message recieved", handler);
-    return () => {
-      socketRef.current.off("message recieved", handler);
-    };
-  }, [notification]);
+    try {
+      setDeleting(true);
+      await axios.delete(`${url}/chats/deletechat/${selectedChat._id}`, {
+        headers: { token: localStorage.getItem("token") },
+      });
+
+      socketRef.current?.emit("delete chat", selectedChat._id);
+
+      toast({ title: "Chat deleted successfully", status: "success" });
+      onClose();
+      setSelectedChat(null);
+      setMessages([]);
+      setFetchAgain((prev) => !prev);
+    } catch (error) {
+      toast({
+        title: "Failed to delete chat",
+        description: error.response?.data?.message || "Server Error",
+        status: "error",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <>
       {selectedChat ? (
         <>
-          <Text
-            fontSize={{ base: "28px", md: "30px" }}
+          {/* Header Section */}
+          <Box
             pb={3}
             px={2}
-            w="100%"
-            fontFamily="Work sans"
             display="flex"
-            justifyContent={{ base: "space-between" }}
             alignItems="center"
+            w="100%"
+            position="relative"
+            minH="50px"
           >
             <IconButton
               display={{ base: "flex", md: "none" }}
               icon={<ArrowBackIcon />}
-              onClick={() => setSelectedChat("")}
+              onClick={() => setSelectedChat(null)}
+              mr={2}
             />
 
-            {!selectedChat.isGroupChat ? (
-              <>
-                {getSender(user, selectedChat.users)}
-                <ProfileModal user={getSenderFull(user, selectedChat.users)} />
-              </>
-            ) : (
-              <>
-                {selectedChat.chatName.toUpperCase()}
-                <UpdateGroupChatModal
-                  fetchMessages={fetchMessages}
-                  fetchAgain={fetchAgain}
-                  setFetchAgain={setFetchAgain}
-                />
-              </>
-            )}
-          </Text>
+            <Text
+              position="absolute"
+              left="50%"
+              transform="translateX(-50%)"
+              fontSize={{ base: "18px", md: "22px" }}
+              fontWeight="medium"
+              isTruncated
+              maxW={{ base: "45%", md: "55%" }}
+              textAlign="center"
+            >
+              {getSender(currentUser, selectedChat.users)}
+            </Text>
 
+            <Box display="flex" alignItems="center" gap={2} ml="auto">
+              <ProfileModal
+                user={getSenderFull(currentUser, selectedChat.users)}
+              />
+              <IconButton
+                icon={<DeleteIcon />}
+                colorScheme="red"
+                variant="ghost"
+                onClick={onOpen}
+                aria-label="Delete Chat"
+              />
+            </Box>
+          </Box>
+
+          {/* Chat Body */}
           <Box
             display="flex"
             flexDir="column"
@@ -234,29 +304,26 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 margin="auto"
               />
             ) : (
-              <div className="messages">
+              <div style={{ flex: 1, overflowY: "auto", marginBottom: "10px" }}>
                 <ScrollableChat messages={messages} />
               </div>
             )}
 
-            <FormControl
-              onKeyDown={sendMessage}
-              id="first-name"
-              isRequired
-              mt={3}
-            >
-              {istyping ? (
-                <div>
-                  <Lottie
-                    options={defaultOptions}
-                    width={70}
-                    style={{ marginBottom: 15, marginLeft: 0 }}
-                  />
-                  loading...
-                </div>
-              ) : (
-                <></>
-              )}
+            {istyping && (
+              <Box display="flex" alignItems="center" ml={2} mb={2}>
+                <Lottie
+                  options={defaultOptions}
+                  height={22}
+                  width={40}
+                  isClickToPauseDisabled={true}
+                />
+                <Text fontSize="sm" color="gray.600" ml={2}>
+                  typing...
+                </Text>
+              </Box>
+            )}
+
+            <FormControl onKeyDown={sendMessage} isRequired>
               <Input
                 variant="filled"
                 bg="#E0E0E0"
@@ -268,13 +335,50 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           </Box>
         </>
       ) : (
-        <Box display="flex" alignItems="center" justifyContent="center" h="100%">
-          <Text fontSize="3xl" pb={3}
-           fontFamily="Work sans">
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          h="100%"
+        >
+          <Text fontSize="3xl" fontFamily="Work sans">
             Click on a user to start chatting
           </Text>
         </Box>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+        isCentered
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Chat
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              Are you sure you want to delete this whole chat? This action
+              cannot be undone.
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose} isDisabled={deleting}>
+                Cancel
+              </Button>
+              <Button
+                colorScheme="red"
+                onClick={deleteChatHandler}
+                ml={3}
+                isLoading={deleting}
+              >
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </>
   );
 };

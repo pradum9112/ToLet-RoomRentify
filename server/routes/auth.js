@@ -86,7 +86,7 @@ Router.post(
 
       // Generate token
       const payload = { user: { id: newUser.id } };
-      const authToken = jwt.sign(payload, JWT_SECRET);
+      const authToken = jwt.sign(payload, JWT_SECRET,{ expiresIn: "1h" });
 
       // Send welcome email
       const msg = `Dear ${fullname},<br><br>Congratulations on taking the first step towards getting dream stays! ...`;
@@ -187,7 +187,7 @@ Router.post(
             },
           };
 
-          const authToken = jwt.sign(payload, JWT_SECRET);
+          const authToken = jwt.sign(payload, JWT_SECRET,{ expiresIn: "1h" });
 
           res.json({
             success: true,

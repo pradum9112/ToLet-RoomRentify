@@ -17,12 +17,35 @@ import {
 const ProfileModal = ({ user, children }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  // Safe Fallback: Agar prop wala 'user' null hai, to localStorage se padho
+  const currentUser = user || JSON.parse(localStorage.getItem("userInfo"));
+
+  // Display Name extractor (Handles user.username, user.name, or user.data structure)
+  const displayName =
+    currentUser?.username ||
+    currentUser?.name ||
+    (currentUser?.data
+      ? `${currentUser?.data?.firstName || ""} ${currentUser?.data?.lastName || ""}`.trim()
+      : "User");
+
+  // Email extractor
+  const displayEmail = currentUser?.email || currentUser?.data?.email || "N/A";
+
+  // Profile Picture extractor
+  const displayPic =
+    currentUser?.pic ||
+    "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
+
   return (
     <>
       {children ? (
         <span onClick={onOpen}>{children}</span>
       ) : (
-        <IconButton display={{ base: "flex" }} icon={<ViewIcon />} onClick={onOpen} />
+        <IconButton
+          display={{ base: "flex" }}
+          icon={<ViewIcon />}
+          onClick={onOpen}
+        />
       )}
       <Modal size="lg" onClose={onClose} isOpen={isOpen} isCentered>
         <ModalOverlay />
@@ -34,7 +57,7 @@ const ProfileModal = ({ user, children }) => {
             justifyContent="center"
             ml={0}
           >
-            {user.username}
+            {displayName}
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody
@@ -46,14 +69,14 @@ const ProfileModal = ({ user, children }) => {
             <Image
               borderRadius="full"
               boxSize="150px"
-              src={user.pic}
-              alt={user.username}
+              src={displayPic}
+              alt={displayName}
             />
             <Text
               fontSize={{ base: "28px", md: "30px" }}
               fontFamily="Work sans"
             >
-              Email: {user.email}
+              Email: {displayEmail}
             </Text>
           </ModalBody>
           <ModalFooter>

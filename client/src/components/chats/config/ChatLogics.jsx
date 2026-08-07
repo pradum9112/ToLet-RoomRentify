@@ -37,10 +37,27 @@ export const isLastMessage = (messages, i, userId) => {
 export const isSameUser = (messages, m, i) => {
   return i > 0 && messages[i - 1].sender._id === m.sender._id;
 };
+const getId = (u) => {
+  if (!u) return "";
+  return (u._id || u.id || u.data?._id || "").toString();
+};
 
 export const getSender = (loggedUser, users) => {
   if (!loggedUser || !users || users.length < 2) return "Unknown";
-  return users[0]._id === loggedUser._id ? users[1].username : users[0].username;
+
+  const loggedId = getId(loggedUser);
+  if (!loggedId) return "Unknown";
+
+  const other =
+    getId(users[0]) === loggedId ? users[1] : users[0];
+
+  return (
+    other?.username ||
+    other?.name ||
+    `${other?.firstName || ""} ${other?.lastName || ""}`.trim() ||
+    other?.email ||
+    "Unknown"
+  );
 };
 
 export const getSenderFull = (loggedUser, users) => {
