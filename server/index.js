@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const connectToMongo = require("./db");
 const cloudinary = require("cloudinary").v2;
@@ -37,6 +38,7 @@ app.use('/testimonial', require('./routes/testimonial'))
 
 app.use('/hosting',require('./routes/hosting'));
 app.use('/booking',require('./routes/booking'));
+app.use('/payment',require('./routes/payment'));
 app.use('/places',require('./routes/places'));
 
 app.use('/chats',require('./routes/chats'));

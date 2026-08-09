@@ -9,7 +9,8 @@ const bookingSchema = new mongoose.Schema({
   name: {type:String, required:true},
   phone: {type:String, required:true},
   price: Number,
-  datecreated:Date
+  datecreated:Date,
+  paymentStatus: { type: String, default: "pending" }, 
 });
 
 const Booking = mongoose.model('Booking', bookingSchema);
