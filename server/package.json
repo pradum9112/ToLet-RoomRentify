@@ -10,7 +10,7 @@
   },
   "author": "Pradum Sonkar",
   "license": "ISC",
-    "dependencies": {
+  "dependencies": {
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
@@ -27,6 +27,7 @@
     "nodemailer": "^7.0.5",
     "passport-local-mongoose": "^8.0.0",
     "path": "^0.12.7",
+    "razorpay": "^2.9.8",
     "socket.io": "^4.7.2"
   }
 }
