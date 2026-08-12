@@ -14,13 +14,7 @@ export default function BookingPage() {
   const [booking, setBooking] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const authToken = localStorage.getItem("token");
-  const {
-    islogin,
-    setIslogin,
-    setSelectedChat,
-    setChats,
-    chats,
-  } = useContext(UserContext);
+  const { islogin, setSelectedChat } = useContext(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -80,8 +74,6 @@ export default function BookingPage() {
         { guestuserId },
         config
       );
-
-      // if (!chats.find((c) => c._id === data._id)) setChats([data, ...chats]);
 
       setSelectedChat(data);
       navigate("/chats");
@@ -147,9 +139,11 @@ export default function BookingPage() {
             <h2 className="text-2xl mb-4">Your booking information:</h2>
             <BookingDates booking={booking} />
           </div>
+
+          {/* Actual Total Price Paid */}
           <div className="bg-primary p-6 text-white rounded-2xl">
             <div>Total price</div>
-            <div className="text-3xl">₹{booking.price}</div>
+            <div className="text-3xl font-bold">₹{booking.price}</div>
           </div>
         </div>
         <PlaceGallery place={booking.place} />

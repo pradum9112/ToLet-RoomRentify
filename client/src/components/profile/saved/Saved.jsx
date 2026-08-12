@@ -1,7 +1,7 @@
 import "../../../assets/styles/filter.css";
 import AccountNav from "../AccountNav";
 import React, { useEffect, useState, useContext } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { url } from "../../../utils/Constants";
 import list from "../../../assets/data/cities.json";
 import { UserContext } from "../../../context/UserContext.jsx";
@@ -12,7 +12,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 function Saved() {
   const [isLoading, setIsLoading] = useState(true);
   const authToken = localStorage.getItem("token");
-  const { islogin, setIslogin } = useContext(UserContext);
+  const { islogin } = useContext(UserContext);
   const navigate = useNavigate();
 
   const [filter, setFilter] = useState({
@@ -45,19 +45,8 @@ function Saved() {
       address: "",
       placetype: "",
     });
-
-    await getData();
   };
 
-  const removeFilter = async (f) => {
-    setFilterData({ ...filterData, [f]: "" });
-    setFilter({ ...filter, [f]: "" });
-  };
-
-  //for pagination
-  //for pagination
-
-  // const [data, setdata] = useState([]);
   const [saved, setSaved] = useState(null);
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -82,9 +71,6 @@ function Saved() {
     setPageSize(newSize);
     setCurrentPage(1);
   };
-
-  //for pagination only ended
-  //for pagination only ended
 
   const getData = async () => {
     const req = `${url}/booking/savedplaces?page=${currentPage}&size=${pageSize}&address=${filterData.address}&placetype=${filterData.placetype}`;
@@ -195,7 +181,7 @@ function Saved() {
                       />
                       <datalist id="data">
                         {list.map((op, i) => (
-                          <option>
+                          <option key={i}>
                             {op.name} , {op.state}
                           </option>
                         ))}
@@ -208,7 +194,6 @@ function Saved() {
                         value={filter.placetype}
                         className="autocomplete-search form-select p-2"
                         onChange={onChange}
-                        type="text"
                       >
                         <option value="">Placetype</option>
                         <option value="Hotel">Hotel</option>
@@ -219,51 +204,18 @@ function Saved() {
                     <div className="header-divider"></div>
 
                     <div className="header-filters">
-                      {/* <div className="d-flex justify-content-end">
-                      <select
-                        name="sort"
-                        // value={filter.sort}
-                        className="sortBy-filterButton p-1"
-                        // onChange={onChange}
-                      >
-                        <option value="">Sort By</option>
-                        <option value="Increasing-Price">Increasing Price</option>
-                        <option value="Decreasing-Price">Decreasing Price</option>
-                        <option value="Increasing Rating">Increasing Rating</option>
-                        <option value="Decreasing-Rating">Decreasing Rating</option>
-                      </select>
-                      <select
-                        name="price"
-                        // value={filter.price}
-                        className="sortBy-filterButton p-1 ml-2"
-                        // onChange={onChange}
-                      >
-                        <option value="">Price Range</option>
-                        <option value="100-500">100rs-500rs</option>
-                        <option value="501-1000">500rs-1000rs</option>
-                      </select>
-                      <select
-                        name="stay-duration"
-                        // value={filter.stay-duration}
-                        className="sortBy-filterButton p-1 ml-2"
-                        // onChange={onChange}
-                      >
-                        <option value="">Stay Duration</option>
-                        <option value="1-15">1days-15days</option>
-                        <option value="15-30">15days-30days</option>
-                      </select>
-                    </div> */}
                       <div className="d-flex justify-content-end">
-                        <a
-                          href="#"
+                        <button
+                          type="button"
                           onClick={handleReset}
-                          className="bg-primary text-white px-4 py-2 rounded"
+                          className="bg-primary text-white px-4 py-2 rounded border-0"
                         >
                           Reset All
-                        </a>
+                        </button>
                         <button
+                          type="submit"
                           name="submit"
-                          className="bg-primary text-white px-4 py-1 rounded ml-2"
+                          className="bg-primary text-white px-4 py-1 rounded ml-2 border-0"
                         >
                           Filter
                         </button>
@@ -277,9 +229,6 @@ function Saved() {
                 <b>Total {totalCount} options Available</b>
               </div>
 
-              {/* card code */}
-              {/* card code */}
-
               {isLoading ? (
                 <div
                   className="circle"
@@ -291,15 +240,15 @@ function Saved() {
                 >
                   <CircularProgress />
                 </div>
-                 ) : !saved ? ( 
-                  <div className="container mt-5">
+              ) : !saved ? (
+                <div className="container mt-5">
                   <div className="row justify-content-center">
                     <div className="col-md-6">
-                    <div className="text-center d-grid" style={{gap:"6px"}}>
-                      <h1><strong>Error!</strong></h1>
-                        <p>
-                          Sorry, Failed to Load !
-                        </p>
+                      <div className="text-center d-grid" style={{ gap: "6px" }}>
+                        <h1>
+                          <strong>Error!</strong>
+                        </h1>
+                        <p>Sorry, Failed to Load !</p>
                       </div>
                     </div>
                   </div>
@@ -308,16 +257,13 @@ function Saved() {
                 <div className="container mt-5">
                   <div className="row justify-content-center">
                     <div className="col-md-6">
-                    <div className="text-center d-grid" style={{gap:"6px"}}>
-                      <h1>No Data Found</h1>
+                      <div className="text-center d-grid" style={{ gap: "6px" }}>
+                        <h1>No Data Found</h1>
                         <p>
                           Sorry, there is no data available to display at the
                           moment.
                         </p>
-                        <Link
-                          to="/"
-                          className="btn btn-primary"
-                        >
+                        <Link to="/" className="btn btn-primary">
                           Add to Wishlist
                         </Link>
                       </div>
@@ -326,7 +272,7 @@ function Saved() {
                 </div>
               ) : (
                 saved.map((save) => (
-                  <div className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
+                  <div key={save._id} className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
                     <div className="card-body px-4 py-4">
                       <div className="row">
                         <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">
@@ -337,7 +283,6 @@ function Saved() {
                                   ? save.photos[0]
                                   : require("./hotel1.jpg")
                               }
-                              fluid
                               className="w-100"
                               alt={
                                 save.photos && save.photos.length > 0
@@ -384,26 +329,25 @@ function Saved() {
                         </div>
                         <div className="col-md-6 col-lg-3 border-sm-start-none border-start">
                           <div className="d-flex flex-row align-items-center mb-1">
-                            <h4 className="me-1">₹{save.price}</h4>
-                            <span className="text-danger">
-                              <s>₹{save.price + 20}</s>
-                            </span>
+                            <h4 className="me-1 fw-bold">₹{save.price}</h4>
+                            <span className="text-muted small">/ night</span>
                           </div>
                           <h6 className="text-success">{save.address}</h6>
                           <div className="d-flex flex-column mt-4">
-                            {/* <Link to={`/detail/${save._id}`}>
-                              <button className="btn btn-primary btn-sm">
-                                Details
-                              </button>
-                            </Link> */}
                             {save.isbooked ? (
-                              <button disabled={true} className="btn btn-primary btn-sm" style={{"background" : "#534173" ,
-                              "borderColor" : "#534173"}}>
+                              <button
+                                disabled={true}
+                                className="btn btn-primary btn-sm"
+                                style={{
+                                  background: "#534173",
+                                  borderColor: "#534173",
+                                }}
+                              >
                                 Already Booked!
                               </button>
                             ) : (
                               <Link to={`/detail/${save._id}`}>
-                                <button className="btn btn-primary btn-sm">
+                                <button className="btn btn-primary btn-sm w-100">
                                   Details
                                 </button>
                               </Link>
@@ -422,9 +366,6 @@ function Saved() {
                   </div>
                 ))
               )}
-
-              {/* card code ended*/}
-              {/* card code ended*/}
 
               <div className="grid-size pb-2">
                 <label htmlFor="pageSizeSelect">Page Size: </label>

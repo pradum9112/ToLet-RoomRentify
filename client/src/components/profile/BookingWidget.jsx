@@ -19,7 +19,7 @@ export default function BookingWidget({ place }) {
   const authToken = localStorage.getItem("token");
   const navigate = useNavigate();
 
-  // Dynamic Razorpay Script Loading
+  // Load Razorpay Script
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -31,14 +31,16 @@ export default function BookingWidget({ place }) {
     };
   }, []);
 
-  // Autofill Name from Logged-in User
+  // Autofill Name from Logged-in User (Fixed & Re-activated)
   useEffect(() => {
     if (user) {
       setName(user.username || user.name || "");
     }
   }, [user]);
 
-  // Calculate total nights
+  // -------------------------------------------------------------
+  // CALCULATION LOGIC (Days Multiplied + Platform Fee)
+  // -------------------------------------------------------------
   let numberOfNights = 0;
   if (checkIn && checkOut) {
     numberOfNights = differenceInCalendarDays(
@@ -47,15 +49,17 @@ export default function BookingWidget({ place }) {
     );
   }
 
-  // Robust Form Validation
-  const isFormValid =
-    Boolean(checkIn) &&
-    Boolean(checkOut) &&
-    Boolean(name.trim()) &&
-    Boolean(phone.trim()) &&
-    phone.trim().length >= 10 &&
-    numberOfGuests > 0 &&
-    numberOfNights > 0;
+  const baseDailyPrice = Number(place?.price) || 0;
+  const discountPerDay = Math.round(baseDailyPrice * 0.10); // 10% Discount
+  const discountedDailyPrice = baseDailyPrice - discountPerDay;
+
+  // Total Room Price = (Discounted Daily Rate) x (Total Nights)
+  const roomTotalPrice = discountedDailyPrice * (numberOfNights > 0 ? numberOfNights : 1);
+  const platformFee = 101; // Fixed Platform Fee
+  
+  // Total Bill = Total Room Price + Platform Fee
+  const finalTotalBookingPrice = numberOfNights > 0 ? (roomTotalPrice + platformFee) : 0;
+  // -------------------------------------------------------------
 
   async function bookThisPlace() {
     // 1) Auth Check
@@ -70,11 +74,11 @@ export default function BookingWidget({ place }) {
       return;
     }
 
-    // 2) Explicit Details Validation
-    if (!name.trim() || !phone.trim() || phone.trim().length < 10) {
+    // 2) Popup Alerts for Missing Fields
+    if (!checkIn || !checkOut) {
       swal({
-        title: "Missing Details!",
-        text: "Please fill your full name and a valid 10-digit phone number.",
+        title: "Dates Required!",
+        text: "Please select both Check-in and Check-out dates.",
         icon: "warning",
         button: "Ok!",
       });
@@ -91,10 +95,30 @@ export default function BookingWidget({ place }) {
       return;
     }
 
+    if (!name.trim()) {
+      swal({
+        title: "Name Required!",
+        text: "Please enter your full name.",
+        icon: "warning",
+        button: "Ok!",
+      });
+      return;
+    }
+
+    if (!phone.trim() || phone.trim().length < 10) {
+      swal({
+        title: "Invalid Phone Number!",
+        text: "Please enter a valid 10-digit phone number.",
+        icon: "warning",
+        button: "Ok!",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
 
-      // 3) Create Booking in Database
+      // 3) Create Booking in DB with Final Bill (Room Stay + Platform Fee)
       const response = await axios.post(
         `${url}/booking/bookings`,
         {
@@ -105,7 +129,7 @@ export default function BookingWidget({ place }) {
           phone: phone.trim(),
           place: place._id,
           placeowner: place.owner,
-          price: numberOfNights * place.price,
+          price: finalTotalBookingPrice, // Platform Fee included bill
         },
         {
           headers: {
@@ -141,7 +165,7 @@ export default function BookingWidget({ place }) {
         return;
       }
 
-      // 6) Configure Razorpay Options
+      // 6) Razorpay Checkout
       const options = {
         key: orderData.key,
         amount: orderData.amount,
@@ -200,7 +224,6 @@ export default function BookingWidget({ place }) {
         },
       };
 
-      // 7) Initialize and Trigger Razorpay Modal
       const rzp = new window.Razorpay(options);
 
       rzp.on("payment.failed", function () {
@@ -231,15 +254,30 @@ export default function BookingWidget({ place }) {
 
   return (
     <div className="bg-white shadow p-4 rounded-2xl">
-      <div className="text-2xl text-center font-bold">
-        Price: ₹{place.price} / per night
+      {/* Header Price Info with Explicit Inline Green Color */}
+      <div className="text-center">
+        <div className="flex justify-center items-center gap-2">
+          <span className="text-2xl font-bold">₹{discountedDailyPrice}</span>
+          <span className="text-red-500 line-through text-sm" style={{ color: "red" }}>
+            ₹{baseDailyPrice}
+          </span>
+          <span className="text-gray-500 text-sm">/ per night</span>
+        </div>
+        <div 
+          className="text-xs font-bold mt-1" 
+          style={{ color: "#2e7d32", fontWeight: "bold" }}
+        >
+          10% OFF Applied
+        </div>
       </div>
 
       <div className="border rounded-2xl mt-4">
-        {/* Check-In & Check-Out Dates */}
+        {/* Check-In & Check-Out Inputs */}
         <div className="flex">
           <div className="py-3 px-4 w-1/2">
-            <label className="text-xs font-bold block">Check in:</label>
+            <label className="text-xs font-bold block">
+              Check in <span style={{ color: "red", fontWeight: "bold" }}>*</span>
+            </label>
             <input
               type="date"
               className="w-full mt-1 p-1 border rounded"
@@ -248,7 +286,9 @@ export default function BookingWidget({ place }) {
             />
           </div>
           <div className="py-3 px-4 border-l w-1/2">
-            <label className="text-xs font-bold block">Check out:</label>
+            <label className="text-xs font-bold block">
+              Check out <span style={{ color: "red", fontWeight: "bold" }}>*</span>
+            </label>
             <input
               type="date"
               className="w-full mt-1 p-1 border rounded"
@@ -258,9 +298,11 @@ export default function BookingWidget({ place }) {
           </div>
         </div>
 
-        {/* Guest Count */}
+        {/* Guests Count */}
         <div className="py-3 px-4 border-t">
-          <label className="text-xs font-bold block">Number of guests:</label>
+          <label className="text-xs font-bold block">
+            Number of guests <span style={{ color: "red", fontWeight: "bold" }}>*</span>
+          </label>
           <input
             type="number"
             min={1}
@@ -270,10 +312,12 @@ export default function BookingWidget({ place }) {
           />
         </div>
 
-        {/* User Details - ALWAYS VISIBLE for UX and smooth validation */}
+        {/* User Input Details */}
         <div className="py-3 px-4 border-t space-y-2">
           <div>
-            <label className="text-xs font-bold block">Your full name:</label>
+            <label className="text-xs font-bold block">
+              Your full name <span style={{ color: "red", fontWeight: "bold" }}>*</span>
+            </label>
             <input
               type="text"
               placeholder="John Doe"
@@ -283,7 +327,9 @@ export default function BookingWidget({ place }) {
             />
           </div>
           <div>
-            <label className="text-xs font-bold block">Phone number:</label>
+            <label className="text-xs font-bold block">
+              Phone number <span style={{ color: "red", fontWeight: "bold" }}>*</span>
+            </label>
             <input
               type="tel"
               placeholder="10-digit mobile number"
@@ -295,7 +341,29 @@ export default function BookingWidget({ place }) {
         </div>
       </div>
 
-      {/* Primary Action Button */}
+      {/* Bill Calculation Box (Days Multiplied + Platform Fee) */}
+      {numberOfNights > 0 && (
+        <div className="mt-4 p-3 bg-gray-50 rounded-xl text-sm border space-y-1">
+          <div className="flex justify-between text-gray-600">
+            <span>
+              ₹{discountedDailyPrice} × {numberOfNights}{" "}
+              {numberOfNights === 1 ? "night" : "nights"}
+            </span>
+            <span>₹{roomTotalPrice}</span>
+          </div>
+          <div className="flex justify-between text-gray-600">
+            <span>Platform Fee</span>
+            <span>₹{platformFee}</span>
+          </div>
+          <hr className="my-1" />
+          <div className="flex justify-between font-bold text-base text-gray-800">
+            <span>Total Payable Amount</span>
+            <span style={{ color: "#534173" }}>₹{finalTotalBookingPrice}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Action Button */}
       {place.isbooked ? (
         <button
           disabled={true}
@@ -309,12 +377,13 @@ export default function BookingWidget({ place }) {
           onClick={bookThisPlace}
           className="primary w-full mt-4 py-2 rounded-2xl text-white font-bold"
           style={{ background: "#534173" }}
-          disabled={!isFormValid || loading}
+          disabled={loading}
         >
-          {loading ? "Processing Payment..." : "Book this Place"}
-          {numberOfNights > 0 && !loading && (
-            <span> ₹{numberOfNights * place.price}</span>
-          )}
+          {loading
+            ? "Processing Payment..."
+            : numberOfNights > 0
+            ? `Book for ₹${finalTotalBookingPrice}`
+            : "Book this Place"}
         </button>
       )}
     </div>

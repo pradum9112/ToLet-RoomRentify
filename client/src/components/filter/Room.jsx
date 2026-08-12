@@ -47,7 +47,6 @@ function Room() {
       address: "",
       placetype: "Room",
     });
-    // setSort("new");
 
     await getData();
   };
@@ -57,10 +56,7 @@ function Room() {
     setFilter({ ...filter, [f]: "" });
   };
 
-  //for pagination
-  //for pagination
-
-  // const [data, setdata] = useState([]);
+  // Pagination logic
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
@@ -84,9 +80,6 @@ function Room() {
     setPageSize(newSize);
     setCurrentPage(1);
   };
-
-  //for pagination only ended
-  //for pagination only ended
 
   const [sort, setSort] = useState("new");
 
@@ -199,14 +192,12 @@ function Room() {
                     />
                     <datalist id="data">
                       {list.map((op, i) => (
-                        <option>
+                        <option key={i}>
                           {op.name} , {op.state}
                         </option>
                       ))}
                     </datalist>
                   </div>
-
-                  {/* <div className="header-divider"></div> */}
 
                   <div className="header-filters">
                     <button
@@ -217,7 +208,6 @@ function Room() {
                     </button>
 
                     <div className="d-flex justify-content-end">
-                      {/* <h4 className="m-auto">SortBy:</h4> */}
                       <select
                         className="form-select ml-1"
                         aria-label="Default select example"
@@ -238,12 +228,6 @@ function Room() {
                       >
                         Reset All
                       </button>
-                      {/* <button
-                        name="submit"
-                        className="bg-primary text-white px-4 py-2 rounded ml-2"
-                      >
-                        Filter
-                      </button> */}
                     </div>
                   </div>
                 </div>
@@ -254,9 +238,7 @@ function Room() {
               <b>Total {totalCount} Rooms Available</b>
             </div>
 
-            {/* card code */}
-            {/* card code */}
-
+            {/* Room Card List */}
             {isLoading ? (
               <div
                 className="circle"
@@ -264,6 +246,7 @@ function Room() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  padding: "50px 0",
                 }}
               >
                 <CircularProgress />
@@ -303,124 +286,143 @@ function Room() {
                 </div>
               </div>
             ) : (
-              rooms.map((room) => (
-                <div className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
-                  <div className="card-body px-4 py-4">
-                    <div className="row">
-                      <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">
-                        <div className="bg-image rounded hover-zoom hover-overlay ripple">
-                          <img
-                            src={
-                              room.photos && room.photos.length > 0
-                                ? room.photos[0]
-                                : require("./hotel1.jpg")
-                            }
-                            fluid
-                            className="w-100"
-                            alt={
-                              room.photos && room.photos.length > 0
-                                ? "room Photo"
-                                : "Default room Photo"
-                            }
-                          />
-                          <div
-                            className="mask"
-                            style={{
-                              backgroundColor: "rgba(251, 251, 251, 0.15)",
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <h5>{room.title}</h5>
-                        <div className="d-flex flex-row">
-                          <div className="text-danger mb-1 me-2">
-                            <i className="fas fa-star"></i>
-                            <i className="fas fa-star"></i>
-                            <i className="fas fa-star"></i>
-                            <i className="fas fa-star"></i>
-                          </div>
-                          <span>310</span>
-                        </div>
-                        <div className="mt-1 text-muted small">
-                          <span>
-                            {room.perks &&
-                              room.perks.length > 0 &&
-                              room.perks.join(" • ")}
-                          </span>
-                          <br />
-                        </div>
-                        <div className="text-muted small">
-                          <span>Owner</span>
-                          <span className="text-primary"> : </span>
-                          <span>{room.ownername}</span>
-                          <br />
-                        </div>
-                        <div className="mb-1 text-muted small">
-                          <span>Date Posted</span>
-                          <span className="text-primary"> : </span>
-                          <span>
-                            {room.datecreated
-                              ? room.datecreated.split("T")[0]
-                              : null}
-                          </span>
-                          <br />
-                        </div>
-                        <p className="text-truncate mb-4 mb-md-0">
-                          {room.description}
-                        </p>
-                      </div>
-                      <div className="col-md-6 col-lg-3 border-sm-start-none border-start">
-                        <div className="d-flex flex-row align-items-center mb-1">
-                          <h4 className="me-1">₹{room.price*30}</h4>
-                          <span className="text-danger">
-                            <s>₹{room.price*30 + 120}</s>
-                          </span>
-                          <h4 className="ml-2">per month</h4>
-                        </div>
-                        <h6 className="text-success">{room.address}</h6>
-                        <div className="d-flex flex-column mt-4">
-                          {/* <Link to={`/detail/${room._id}`}>
-                            <button className="btn btn-primary btn-sm">
-                              Details
-                            </button>
-                          </Link> */}
-                          {room.isbooked ? (
-                            <button
-                              disabled={true}
-                              className="btn btn-primary btn-sm"
+              rooms.map((room) => {
+                // Per Night Pricing Math with 10% Discount
+                const basePrice = Number(room.price) || 0;
+                const discount = Math.round(basePrice * 0.10);
+                const discountedPrice = basePrice - discount;
+
+                return (
+                  <div
+                    key={room._id}
+                    className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2"
+                  >
+                    <div className="card-body px-4 py-4">
+                      <div className="row">
+                        <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">
+                          <div className="bg-image rounded hover-zoom hover-overlay ripple">
+                            <img
+                              src={
+                                room.photos && room.photos.length > 0
+                                  ? room.photos[0]
+                                  : require("./hotel1.jpg")
+                              }
+                              className="w-100"
+                              alt={
+                                room.photos && room.photos.length > 0
+                                  ? "room Photo"
+                                  : "Default room Photo"
+                              }
+                            />
+                            <div
+                              className="mask"
                               style={{
-                                background: "#534173",
-                                borderColor: "#534173",
+                                backgroundColor: "rgba(251, 251, 251, 0.15)",
                               }}
+                            ></div>
+                          </div>
+                        </div>
+                        <div className="col-md-6">
+                          <h5>{room.title}</h5>
+                          <div className="d-flex flex-row">
+                            <div className="text-danger mb-1 me-2">
+                              <i className="fas fa-star"></i>
+                              <i className="fas fa-star"></i>
+                              <i className="fas fa-star"></i>
+                              <i className="fas fa-star"></i>
+                            </div>
+                            <span>310</span>
+                          </div>
+                          <div className="mt-1 text-muted small">
+                            <span>
+                              {room.perks &&
+                                room.perks.length > 0 &&
+                                room.perks.join(" • ")}
+                            </span>
+                            <br />
+                          </div>
+                          <div className="text-muted small">
+                            <span>Owner</span>
+                            <span className="text-primary"> : </span>
+                            <span>{room.ownername}</span>
+                            <br />
+                          </div>
+                          <div className="mb-1 text-muted small">
+                            <span>Date Posted</span>
+                            <span className="text-primary"> : </span>
+                            <span>
+                              {room.datecreated
+                                ? room.datecreated.split("T")[0]
+                                : null}
+                            </span>
+                            <br />
+                          </div>
+                          <p className="text-truncate mb-4 mb-md-0">
+                            {room.description}
+                          </p>
+                        </div>
+                        <div className="col-md-6 col-lg-3 border-sm-start-none border-start">
+                          <div className="d-flex flex-row align-items-center mb-1 gap-2">
+                            {/* Discounted Per-Night Price */}
+                            <h4 className="me-1 mb-0 font-weight-bold">
+                              ₹{discountedPrice}
+                            </h4>
+                            {/* Struck-through Original Base Price */}
+                            <span
+                              className="text-danger text-sm"
+                              style={{ color: "red", textDecoration: "line-through" }}
                             >
-                              Already Booked!
-                            </button>
-                          ) : (
-                            <Link to={`/detail/${room._id}`}>
-                              <button className="btn btn-primary btn-sm">
-                                Details
-                              </button>
-                            </Link>
-                          )}
-                          <button
-                            className="btn btn-outline-primary btn-sm mt-2"
-                            onClick={() => addtosaved(room._id)}
+                              ₹{basePrice}
+                            </span>
+                            <span className="ml-1 text-muted text-sm">/ night</span>
+                          </div>
+
+                          {/* 10% OFF Offer Badge */}
+                          <div
+                            className="small font-weight-bold mb-2"
+                            style={{ color: "#2e7d32", fontWeight: "bold" }}
                           >
-                            Add to wish list
-                          </button>
+                            10% OFF Applied
+                          </div>
+
+                          <h6 className="text-success">{room.address}</h6>
+
+                          <div className="d-flex flex-column mt-4">
+                            {room.isbooked ? (
+                              <button
+                                disabled={true}
+                                className="btn btn-primary btn-sm"
+                                style={{
+                                  background: "#534173",
+                                  borderColor: "#534173",
+                                }}
+                              >
+                                Already Booked!
+                              </button>
+                            ) : (
+                              <Link to={`/detail/${room._id}`}>
+                                <button className="btn btn-primary btn-sm w-100">
+                                  Details
+                                </button>
+                              </Link>
+                            )}
+                            <button
+                              className="btn btn-outline-primary btn-sm mt-2"
+                              onClick={() => addtosaved(room._id)}
+                            >
+                              Add to wish list
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
 
-            {/* card code ended*/}
-            {/* card code ended*/}
-
-            <div className="grid-size pb-2">
+            {/* Pagination Controls */}
+            <div className="grid-size pb-2 mt-3">
               <label htmlFor="pageSizeSelect">Page Size: </label>
               <select
                 id="pageSizeSelect"

@@ -6,14 +6,14 @@ import list from "../../assets/data/cities.json";
 import swal from "sweetalert";
 import CircularProgress from "@mui/material/CircularProgress";
 
-import {UserContext} from "../../context/UserContext.jsx";
+import { UserContext } from "../../context/UserContext.jsx";
 
 function Hotel() {
   const [sort, setSort] = useState("new");
   const [hotels, setHotels] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const authToken = localStorage.getItem("token");
-  const {islogin,setIslogin,setFilterData,filterData} = useContext(UserContext);
+  const { islogin, setIslogin, setFilterData, filterData } = useContext(UserContext);
   const navigate = useNavigate();
 
   const [filter, setFilter] = useState({
@@ -33,7 +33,7 @@ function Hotel() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFilterData(filter);
-    setFilterDatas(filter);    
+    setFilterDatas(filter);
   };
 
   const handleReset = async (e) => {
@@ -56,9 +56,7 @@ function Hotel() {
     setFilter({ ...filter, [f]: "" });
   };
 
-  //for pagination
-  //for pagination
-
+  // Pagination logic
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
@@ -83,102 +81,99 @@ function Hotel() {
     setCurrentPage(1);
   };
 
-  //for pagination only ended
-  //for pagination only ended
-
   const getData = async () => {
     setIsLoading(true);
-    try{
-    const req = `${url}/places?page=${currentPage}&size=${pageSize}&address=${filterData.address}&sort=${sort}&placetype=hotel`;
+    try {
+      const req = `${url}/places?page=${currentPage}&size=${pageSize}&address=${filterData.address}&sort=${sort}&placetype=hotel`;
 
-    const response = await fetch(req, {
-      method: "GET",
-      mode: "cors",
-      referrerPolicy: "origin-when-cross-origin",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+      const response = await fetch(req, {
+        method: "GET",
+        mode: "cors",
+        referrerPolicy: "origin-when-cross-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
 
-    const responseData = await response.json();
+      const responseData = await response.json();
 
-    if (response.status === 200) {
-      setHotels(responseData.placesdata);
-      setPageCount(responseData.Pagination.pageCount);
-      setTotalCount(responseData.Pagination.count);
+      if (response.status === 200) {
+        setHotels(responseData.placesdata);
+        setPageCount(responseData.Pagination.pageCount);
+        setTotalCount(responseData.Pagination.count);
+      }
+
+      setFilterData({
+        address: "",
+      });
+    } catch (err) {
+      swal({
+        title: "Try Again!",
+        text: "Server is down!",
+        icon: "error",
+        button: "Ok!",
+      });
     }
-    
-    setFilterData({
-      address: "",
-    });
-  } catch (err) {
-    swal({
-      title: "Try Again!",
-      text: "server is down!",
-      icon: "error",
-      button: "Ok!",
-    });
-  }
-  setIsLoading(false);
+    setIsLoading(false);
   };
 
-  useEffect(() => {  
+  useEffect(() => {
     getData();
-  }, [currentPage, pageSize,filterDatas,sort]);
+  }, [currentPage, pageSize, filterDatas, sort]);
 
   const addtosaved = async (id) => {
     if (!islogin) {
       swal({
-        title: "Login Required!" ,
+        title: "Login Required!",
         text: "Go to Login Page!",
         icon: "error",
         button: "Ok!",
       });
       navigate("/login");
     } else {
-      try{
-    const checkResponse = await fetch(`${url}/booking/addsaved/${id}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        token: authToken,
-      },
-    });
-    const data1 = await checkResponse.json();
-    if (data1.success === true) {
-      swal({
-        title: "Done!",
-        text: "place successfully added to wishlist !",
-        icon: "success",
-        button: "Ok!",
-      });
-      navigate("/profile/saved");
-    } else {
-      swal({
-        title: "Already Exist!" ,
-        text: "Place Already Exist in Wishlist!",
-        icon: "error",
-        button: "Ok!",
-      });
+      try {
+        const checkResponse = await fetch(`${url}/booking/addsaved/${id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            token: authToken,
+          },
+        });
+        const data1 = await checkResponse.json();
+        if (data1.success === true) {
+          swal({
+            title: "Done!",
+            text: "Place successfully added to wishlist!",
+            icon: "success",
+            button: "Ok!",
+          });
+          navigate("/profile/saved");
+        } else {
+          swal({
+            title: "Already Exist!",
+            text: "Place Already Exist in Wishlist!",
+            icon: "error",
+            button: "Ok!",
+          });
+        }
+      } catch (err) {
+        swal({
+          title: "Try Again!",
+          text: "Server is down!",
+          icon: "error",
+          button: "Ok!",
+        });
+      }
     }
-  } catch (err) {
-    swal({
-      title: "Try Again!",
-      text: "server is down!",
-      icon: "error",
-      button: "Ok!",
-    });
-  }
-  }
   };
 
   return (
     <div className="container-fluid section">
       <div className="row justify-content-center">
         <div className="col-md-12 col-lg-10">
-          <div className="mx-0 my-4 p-0 outer-border ">
+          <div className="mx-0 my-4 p-0 outer-border">
             <form onSubmit={handleSubmit}>
               <div className="header-header">
                 <div className="header-title">Search For Hotels</div>
@@ -195,23 +190,21 @@ function Hotel() {
                     />
                     <datalist id="data">
                       {list.map((op, i) => (
-                        <option>
+                        <option key={i}>
                           {op.name} , {op.state}
                         </option>
                       ))}
                     </datalist>
                   </div>
-                  {/* <div className="header-divider"></div> */}
 
                   <div className="header-filters">
-                  <button
+                    <button
                       name="submit"
                       className="bg-primary text-white px-4 py-2 rounded ml-0"
                     >
                       Search
                     </button>
                     <div className="d-flex justify-content-end">
-                      {/* <h4 className="m-auto">SortBy:</h4> */}
                       <select
                         className="form-select ml-1"
                         aria-label="Default select example"
@@ -231,12 +224,6 @@ function Hotel() {
                       >
                         Reset All
                       </button>
-                      {/* <button
-                        name="submit"
-                        className="bg-primary text-white px-4 py-2 rounded ml-2"
-                      >
-                        Filter
-                      </button> */}
                     </div>
                   </div>
                 </div>
@@ -247,8 +234,7 @@ function Hotel() {
               <b>Total {totalCount} Hotels Available</b>
             </div>
 
-            {/* card code */}
-            {/* card code */}
+            {/* Hotel Cards List */}
             {isLoading ? (
               <div
                 className="circle"
@@ -256,19 +242,20 @@ function Hotel() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  padding: "50px 0",
                 }}
               >
                 <CircularProgress />
               </div>
-              ) : !hotels ? ( 
-                <div className="container mt-5">
+            ) : !hotels ? (
+              <div className="container mt-5">
                 <div className="row justify-content-center">
                   <div className="col-md-6">
-                  <div className="text-center d-grid" style={{gap:"6px"}}>
-                    <h1><strong>Error!</strong></h1>
-                      <p>
-                        Sorry, Failed to Load !
-                      </p>
+                    <div className="text-center d-grid" style={{ gap: "6px" }}>
+                      <h1>
+                        <strong>Error!</strong>
+                      </h1>
+                      <p>Sorry, Failed to Load!</p>
                     </div>
                   </div>
                 </div>
@@ -277,14 +264,16 @@ function Hotel() {
               <div className="container mt-5">
                 <div className="row justify-content-center">
                   <div className="col-md-6">
-                    <div className="text-center d-grid" style={{gap:"6px"}}>
+                    <div className="text-center d-grid" style={{ gap: "6px" }}>
                       <h1>No Data Found</h1>
                       <p>
-                        Sorry, there is no data available to display at the
-                        moment.
+                        Sorry, there is no data available to display at the moment.
                       </p>
-                      <a href="#"
-                        onClick={handleReset} className="btn btn-primary">
+                      <a
+                        href="#"
+                        onClick={handleReset}
+                        className="btn btn-primary"
+                      >
                         Remove All Filters
                       </a>
                     </div>
@@ -292,116 +281,143 @@ function Hotel() {
                 </div>
               </div>
             ) : (
+              hotels.map((hotel) => {
+                // 10% Discount Calculation Logic
+                const basePrice = Number(hotel.price) || 0;
+                const discount = Math.round(basePrice * 0.10);
+                const discountedPrice = basePrice - discount;
 
-              hotels.map((hotel) => (
-                <div className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
-                  <div className="card-body px-4 py-4">
-                    <div className="row">
-                      <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">
-                        <div className="bg-image rounded hover-zoom hover-overlay ripple">
-                          <img
-                            src={
-                              hotel.photos && hotel.photos.length > 0
-                                ? hotel.photos[0]
-                                : require("./hotel1.jpg")
-                            }
-                            fluid
-                            className="w-100"
-                            alt={
-                              hotel.photos && hotel.photos.length > 0
-                                ? "Hotel Photo"
-                                : "Default Hotel Photo"
-                            }
-                          />
-                          <div
-                            className="mask"
-                            style={{
-                              backgroundColor: "rgba(251, 251, 251, 0.15)",
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <h5>{hotel.title}</h5>
-                        <div className="d-flex flex-row">
-                          <div className="text-danger mb-1 me-2">
-                            <i className="fas fa-star"></i>
-                            <i className="fas fa-star"></i>
-                            <i className="fas fa-star"></i>
-                            <i className="fas fa-star"></i>
+                return (
+                  <div
+                    key={hotel._id}
+                    className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2"
+                  >
+                    <div className="card-body px-4 py-4">
+                      <div className="row">
+                        <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">
+                          <div className="bg-image rounded hover-zoom hover-overlay ripple">
+                            <img
+                              src={
+                                hotel.photos && hotel.photos.length > 0
+                                  ? hotel.photos[0]
+                                  : require("./hotel1.jpg")
+                              }
+                              className="w-100"
+                              alt={
+                                hotel.photos && hotel.photos.length > 0
+                                  ? "Hotel Photo"
+                                  : "Default Hotel Photo"
+                              }
+                            />
+                            <div
+                              className="mask"
+                              style={{
+                                backgroundColor: "rgba(251, 251, 251, 0.15)",
+                              }}
+                            ></div>
                           </div>
-                          <span>310</span>
                         </div>
-                        <div className="mt-1 text-muted small">
-                          <span>
-                            {hotel.perks &&
-                              hotel.perks.length > 0 &&
-                              hotel.perks.join(" • ")}
-                          </span>
-                          <br />
+                        <div className="col-md-6">
+                          <h5>{hotel.title}</h5>
+                          <div className="d-flex flex-row">
+                            <div className="text-danger mb-1 me-2">
+                              <i className="fas fa-star"></i>
+                              <i className="fas fa-star"></i>
+                              <i className="fas fa-star"></i>
+                              <i className="fas fa-star"></i>
+                            </div>
+                            <span>310</span>
+                          </div>
+                          <div className="mt-1 text-muted small">
+                            <span>
+                              {hotel.perks &&
+                                hotel.perks.length > 0 &&
+                                hotel.perks.join(" • ")}
+                            </span>
+                            <br />
+                          </div>
+                          <div className="text-muted small">
+                            <span>Owner</span>
+                            <span className="text-primary"> : </span>
+                            <span>{hotel.ownername}</span>
+                            <br />
+                          </div>
+                          <div className="mb-1 text-muted small">
+                            <span>Date Posted</span>
+                            <span className="text-primary"> : </span>
+                            <span>
+                              {hotel.datecreated
+                                ? hotel.datecreated.split("T")[0]
+                                : null}
+                            </span>
+                            <br />
+                          </div>
+                          <p className="text-truncate mb-4 mb-md-0">
+                            {hotel.description}
+                          </p>
                         </div>
-                        <div className="text-muted small">
-                          <span>Owner</span>
-                          <span className="text-primary"> : </span>
-                          <span>{hotel.ownername}</span>
-                          <br />
-                        </div>
-                        <div className="mb-1 text-muted small">
-                          <span>Date Posted</span>
-                          <span className="text-primary"> : </span>
-                          <span>
-                            {hotel.datecreated
-                              ? hotel.datecreated.split("T")[0]
-                              : null}
-                          </span>
-                          <br />
-                        </div>
-                        <p className="text-truncate mb-4 mb-md-0">
-                          {hotel.description}
-                        </p>
-                      </div>
-                      <div className="col-md-6 col-lg-3 border-sm-start-none border-start">
-                        <div className="d-flex flex-row align-items-center mb-1">
-                          <h4 className="me-1">₹{hotel.price}</h4>
-                          <span className="text-danger">
-                            <s>₹{hotel.price + 20}</s>
-                          </span>
-                          <h4 className="ml-2">per night</h4>
-                        </div>
-                        <h6 className="text-success">{hotel.address}</h6>
-                        <div className="d-flex flex-column mt-4">
-                          {/* <Link to={`/detail/${hotel._id}`}>
-                            <button className="btn btn-primary btn-sm">
-                              Details
-                            </button>
-                          </Link> */}
-                          {hotel.isbooked ? (
-                              <button disabled={true} className="btn btn-primary btn-sm" style={{"background" : "#534173" ,
-                                "borderColor" : "#534173"}}>
+                        <div className="col-md-6 col-lg-3 border-sm-start-none border-start">
+                          <div className="d-flex flex-row align-items-center mb-1 gap-2">
+                            {/* Discounted Price */}
+                            <h4 className="me-1 mb-0 font-weight-bold">
+                              ₹{discountedPrice}
+                            </h4>
+                            {/* Struck-through Original Base Price */}
+                            <span
+                              className="text-danger text-sm"
+                              style={{ color: "red", textDecoration: "line-through" }}
+                            >
+                              ₹{basePrice}
+                            </span>
+                            <span className="ml-1 text-muted text-sm">/ night</span>
+                          </div>
+
+                          {/* Explicit Green Color Offer Badge */}
+                          <div
+                            className="small font-weight-bold mb-2"
+                            style={{ color: "#2e7d32", fontWeight: "bold" }}
+                          >
+                            10% OFF Applied
+                          </div>
+
+                          <h6 className="text-success">{hotel.address}</h6>
+                          
+                          <div className="d-flex flex-column mt-4">
+                            {hotel.isbooked ? (
+                              <button
+                                disabled={true}
+                                className="btn btn-primary btn-sm"
+                                style={{
+                                  background: "#534173",
+                                  borderColor: "#534173",
+                                }}
+                              >
                                 Already Booked!
                               </button>
                             ) : (
                               <Link to={`/detail/${hotel._id}`}>
-                                <button className="btn btn-primary btn-sm">
+                                <button className="btn btn-primary btn-sm w-100">
                                   Details
                                 </button>
                               </Link>
                             )}
-                          <button className="btn btn-outline-primary btn-sm mt-2" onClick={() => addtosaved(hotel._id)} >
-                            Add to wish list
-                          </button>
+                            <button
+                              className="btn btn-outline-primary btn-sm mt-2"
+                              onClick={() => addtosaved(hotel._id)}
+                            >
+                              Add to wish list
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
 
-            {/* card code ended*/}
-            {/* card code ended*/}
-
-            <div className="grid-size pb-2">
+            {/* Pagination Controls */}
+            <div className="grid-size pb-2 mt-3">
               <label htmlFor="pageSizeSelect">Page Size: </label>
               <select
                 id="pageSizeSelect"

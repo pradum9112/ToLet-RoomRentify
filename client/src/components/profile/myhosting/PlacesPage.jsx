@@ -1,4 +1,4 @@
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AccountNav from "../AccountNav";
 import { useEffect, useState, useContext } from "react";
 import axios from "axios";
@@ -12,11 +12,10 @@ export default function PlacesPage() {
   const [places, setPlaces] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const authToken = localStorage.getItem("token");
-  const { islogin, setIslogin } = useContext(UserContext);
+  const { islogin } = useContext(UserContext);
   const navigate = useNavigate();
 
   const getplacesData = async () => {
-    
     try {
       axios
         .get(`${url}/hosting/user-places`, {
@@ -38,7 +37,6 @@ export default function PlacesPage() {
         button: "Ok!",
       });
     }
-    
   };
 
   useEffect(() => {
@@ -118,7 +116,7 @@ export default function PlacesPage() {
           </div>
         ) : (
           places.map((place) => (
-            <div className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
+            <div key={place._id} className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
               <div className="card-body px-4 py-4">
                 <div className="row">
                   <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">
@@ -129,7 +127,6 @@ export default function PlacesPage() {
                             ? place.photos[0]
                             : require("./hotel1.jpg")
                         }
-                        fluid
                         className="w-100"
                         alt={
                           place.photos && place.photos.length > 0
@@ -176,24 +173,23 @@ export default function PlacesPage() {
                   </div>
                   <div className="col-md-6 col-lg-3 border-sm-start-none border-start">
                     <div className="d-flex flex-row align-items-center mb-1">
-                      <h4 className="me-1">₹{place.price}</h4>
-                      <span className="text-danger">
-                        <s>₹{place.price + 20}</s>
-                      </span>
+                      <h4 className="me-1 fw-bold">₹{place.price}</h4>
+                      <span className="text-muted small">/ night</span>
                     </div>
                     <h6 className="text-success">{place.address}</h6>
                     <div className="d-flex flex-column mt-4">
                       <Link to={`/place/${place._id}`}>
-                        <button className="btn btn-primary btn-sm">
+                        <button className="btn btn-primary btn-sm w-100">
                           Details
                         </button>
                       </Link>
 
-                      <button className="btn btn-outline-primary btn-sm mt-2">
-                        <Link to={"/profile/places/" + place._id}>
-                          Update Data
-                        </Link>
-                      </button>
+                      <Link
+                        to={"/profile/places/" + place._id}
+                        className="btn btn-outline-primary btn-sm mt-2 text-center"
+                      >
+                        Update Data
+                      </Link>
                     </div>
                   </div>
                 </div>

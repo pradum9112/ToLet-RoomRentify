@@ -152,6 +152,11 @@ export default function Map() {
               roomImage = point.photos[0]; 
             }
 
+            // Per Night Pricing Math with 10% Discount
+            const basePrice = Number(point.price) || 0;
+            const discount = Math.round(basePrice * 0.10);
+            const discountedPrice = basePrice - discount;
+
             return (
               <Marker
                 key={point._id}
@@ -171,7 +176,22 @@ export default function Map() {
 
                     <h4 style={{ margin: "10px 0 4px 0", fontSize: "14px", fontWeight: "700" }}>{point.title}</h4>
                     <p style={{ margin: "2px 0", fontSize: "12px" }}><strong>Type:</strong> {point.placetype}</p>
-                    <p style={{ margin: "2px 0 8px 0", fontSize: "12px" }}><strong>Price:</strong> ₹{point.price} {point.placetype === "Hotel" ? "/night" : "/month"}</p>
+                    
+                    {/* Per Night Price with 10% Discount */}
+                    <div style={{ margin: "4px 0 2px 0", fontSize: "12px" }}>
+                      <strong>Price:</strong>{" "}
+                      <span style={{ fontSize: "14px", fontWeight: "700", color: "#2e7d32" }}>
+                        ₹{discountedPrice}
+                      </span>{" "}
+                      <span style={{ color: "red", textDecoration: "line-through", fontSize: "11px" }}>
+                        ₹{basePrice}
+                      </span>{" "}
+                      /night
+                    </div>
+
+                    <div style={{ fontSize: "10px", fontWeight: "bold", color: "#2e7d32", marginBottom: "8px" }}>
+                      10% OFF Applied
+                    </div>
 
                     {point.isbooked ? (
                       <button disabled style={{ width: "100%", padding: "8px", background: "#ccc", border: "none", borderRadius: "6px", cursor: "not-allowed" }}>

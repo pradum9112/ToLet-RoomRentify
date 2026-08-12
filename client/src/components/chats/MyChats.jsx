@@ -1,30 +1,3 @@
-// import { BellIcon } from "@chakra-ui/icons";
-// import { Box, Stack, Text } from "@chakra-ui/layout";
-// import { useToast } from "@chakra-ui/toast";
-// import axios from "axios";
-// import { useEffect, useState } from "react";
-// import { getSender } from "./config/ChatLogics";
-// import ChatLoading from "./ChatLoading";
-// import { Button } from "@chakra-ui/react";
-// import { useContext } from "react";
-// import { UserContext } from "../../context/UserContext.jsx";
-// import { url } from "../../utils/Constants";
-
-// import { useDisclosure } from "@chakra-ui/hooks";
-// import { Input } from "@chakra-ui/input";
-// import UserListItem from "./userAvatar/UserListItem";
-// import { Spinner } from "@chakra-ui/spinner";
-// import { Badge } from "@chakra-ui/react";
-// import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/menu";
-// import {
-//   Drawer,
-//   DrawerBody,
-//   DrawerContent,
-//   DrawerHeader,
-//   DrawerOverlay,
-// } from "@chakra-ui/modal";
-// import { Tooltip } from "@chakra-ui/tooltip";
-
 import { BellIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   Box,

@@ -1,6 +1,5 @@
-import React, { useRef, useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { MdArrowRightAlt, MdImageSearch } from "react-icons/md";
 import "../../assets/styles/featuredcards.css";
 
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -11,8 +10,7 @@ import "swiper/css/navigation";
 import "swiper/css/autoplay";
 import "swiper/css";
 
-function FeaturedCards({ images ,type}) {
-
+function FeaturedCards({ images, type }) {
   const [windowSize, setWindowSize] = useState(window.innerWidth);
 
   useEffect(() => {
@@ -23,7 +21,7 @@ function FeaturedCards({ images ,type}) {
 
   return (
     <div>
-      <section className={`featuredopp feature-feature`}>
+      <section className="featuredopp feature-feature">
         <div className="featuredopp-container container">
           <div className="featuredopp-content">
             <h2>Some featured {type}</h2>
@@ -35,7 +33,6 @@ function FeaturedCards({ images ,type}) {
           <Swiper
             spaceBetween={10}
             modules={[Autoplay, Pagination]}
-            // pagination={{clickable: true}}
             slidesPerView={
               windowSize <= 900
                 ? windowSize <= 800
@@ -45,50 +42,53 @@ function FeaturedCards({ images ,type}) {
             }
             autoplay={{
               delay: 2000,
-              //   pauseOnMouseEnter: true,
               disableOnInteraction: true,
             }}
             loop={true}
             speed={800}
-            // className='swiper-container'
           >
             {images.map((data) => {
+              // Per Night Pricing with 10% Discount Math
+              const basePrice = Number(data.price) || 0;
+              const discount = Math.round(basePrice * 0.10);
+              const discountedPrice = basePrice - discount;
+
               return (
                 <SwiperSlide key={data._id}>
-                 <Link to={`/detail/${data._id}`}>
+                  <Link to={`/detail/${data._id}`}>
                     <div className="featureopp-card">
                       <div className="featureopp-card-img">
-                        <img src={data.photos[0]} alt="banner" />
+                        <img 
+                          src={data.photos && data.photos.length > 0 ? data.photos[0] : ""} 
+                          alt={data.title || "featured item"} 
+                        />
                       </div>
                       <div className="featureopp-card-content">
                         <h4>{data.title}</h4>
                         <h5>{data.address}</h5>
-                        {/* <h5>{data.price}</h5> */}
+                        
+                        {/* Per Night Price Display with 10% Discount */}
                         <div className="d-flex flex-row align-items-center mb-1">
-                          <h4 className="me-1">₹{type === 'Hotel' ? data.price : data.price * 30}</h4>
+                          {/* Discounted Price */}
+                          <h4 className="me-1">₹{discountedPrice}</h4>
+                          
+                          {/* Original Base Price Cut-through */}
                           <span className="text-danger">
-                            <s>₹{type === 'Hotel' ? data.price+30 : data.price * 30+60}</s>
+                            <s>₹{basePrice}</s>
                           </span>
-                          {/* <h4>&nbsp{type === 'Hotel' ? "per night" : "per month"}</h4> */}
-                          <h4>&nbsp;{type === 'Hotel' ? "per night" : "per month"}</h4>;
-
+                          
+                          {/* Always Per Night */}
+                          <h4>&nbsp;per night</h4>
                         </div>
-                        {/* <div className="featureopp-card-bottom">
-                          <div className="card-badge">
-                            <img
-                              src="	https://d8it4huxumps7.cloudfront.net/uploads/images/63d1240708744_people_outline.svg"
-                              alt="people"
-                            />
-                            <span>6,451 Registered</span>
-                          </div>
-                          <div className="card-badge">
-                            <img
-                              src="https://d8it4huxumps7.cloudfront.net/uploads/images/63c699aa6a592_calendar_today.svg"
-                              alt="calendar"
-                            />
-                            <span>1 month left</span>
-                          </div>
-                        </div> */}
+
+                        {/* 10% Off Badge */}
+                        <div 
+                          className="small font-weight-bold" 
+                          style={{ color: "#2e7d32", fontWeight: "bold" }}
+                        >
+                          10% OFF Applied
+                        </div>
+
                       </div>
                     </div>
                   </Link>

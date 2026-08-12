@@ -8,175 +8,156 @@ const ForgotPass = (props) => {
   const [credentials, setCredentials] = useState({
     email: props.email || "",
     password: "",
-    authcode: null,
+    authcode: "",
   });
 
-  let history = useNavigate();
+  const navigate = useNavigate();
   const [sendOtp, setSendOtp] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const onChange = (event) => {
-    if (event.target.name === "authcode") {
-      const authcodeValue = event.target.value.substring(0, 6);
-      setCredentials({ ...credentials, [event.target.name]: authcodeValue });
+    const { name, value } = event.target;
+    if (name === "authcode") {
+      const authcodeValue = value.substring(0, 6);
+      setCredentials((prev) => ({ ...prev, [name]: authcodeValue }));
     } else {
-      setCredentials({
-        ...credentials,
-        [event.target.name]: event.target.value,
-      });
+      setCredentials((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const sendMail = async (event) => {
-    event.preventDefault();
-    if (validateMail()) {
-      try {
-        const response = await fetch(`${url}/forgotpassword/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-          body: JSON.stringify({ email: credentials.email }),
-          mode: "cors",
-          referrerPolicy: "origin-when-cross-origin",
-        });
-        const json = await response.json();
-
-        if (json.success === true) {
-          swal({
-            title: "Good job!",
-            text: "mail sent successfully!",
-            icon: "success",
-            button: "Ok!",
-          });
-          setSendOtp(true);
-        } else {
-          swal({
-            title: "Try Again!",
-            text: json.message || "Something went wrong. Please try again.",
-            icon: "error",
-            button: "Ok!",
-          });
-          setSendOtp(false);
-        }
-      } catch (err) {
-        swal({
-          title: "Try Again!",
-          text: "server is down!",
-          icon: "error",
-          button: "Ok!",
-        });
-      }
-    }
+  const togglePassword = () => {
+    setShowPassword((prev) => !prev);
   };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (validateForm()) {
-      try {
-        const response = await fetch(`${url}/forgotpassword/verify`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-          body: JSON.stringify({
-            email: credentials.email,
-            password: credentials.password,
-            authcode: Number(credentials.authcode),
-          }),
-          mode: "cors",
-          referrerPolicy: "origin-when-cross-origin",
-        });
-        const json = await response.json();
-
-        if (json.success === true) {
-          swal({
-            title: "Success!",
-            text: "password changed successfully",
-            icon: "success",
-            button: "Ok!",
-          });
-          history("/login");
-        } else {
-          swal({
-            title: "Try Again!",
-            text: "Invalid OTP!",
-            icon: "error",
-            button: "Ok!",
-          });
-        }
-      } catch (err) {
-        swal({
-          title: "Try Again!",
-          text: "server is down!",
-          icon: "error",
-          button: "Ok!",
-        });
-      }
-    }
-  };
-
-  /////////////////////////// form validation/////////////////////////////
-  /////////////////////////// form validation/////////////////////////////
 
   const validateMail = () => {
-    let errors = {};
+    let errs = {};
     let isValid = true;
 
     if (!credentials.email) {
-      errors.email = "Email is required";
+      errs.email = "Email is required";
       isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(credentials.email)) {
-      errors.email = "Invalid email format";
+      errs.email = "Invalid email format";
       isValid = false;
     }
 
-    setErrors(errors);
+    setErrors(errs);
     return isValid;
   };
 
   const validateForm = () => {
-    let errors = {};
+    let errs = {};
     let isValid = true;
 
     if (!credentials.authcode) {
-      errors.authcode = "authcode is required";
+      errs.authcode = "Verification code is required";
       isValid = false;
-    } else if (credentials.authcode?.length !== 6) {
-      errors.authcode = "authcode must be of 6 characters";
+    } else if (credentials.authcode.length !== 6) {
+      errs.authcode = "Verification code must be 6 digits";
       isValid = false;
     }
 
     if (!credentials.password) {
-      errors.password = "Password is required";
+      errs.password = "Password is required";
       isValid = false;
-    } else if (credentials.password?.length < 8) {
-      errors.password = "Password must be at least 8 characters";
+    } else if (credentials.password.length < 8) {
+      errs.password = "Password must be at least 8 characters";
       isValid = false;
     }
 
-    setErrors(errors);
+    setErrors(errs);
     return isValid;
   };
 
-  /////////////////////////// form validation ended here/////////////////////////////
-  /////////////////////////// form validation ended here/////////////////////////////
+  // Step 1: Send Mail / Request OTP
+  const sendMail = async (event) => {
+    event.preventDefault();
+    if (!validateMail()) return;
 
-  ///////////////////////////for show password toggle_button start//////////////////////////////////////////////////////////////
+    try {
+      const response = await fetch(`${url}/forgotpassword`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: credentials.email }),
+      });
 
-  const [showPassword, setShowPassword] = useState(false);
+      const json = await response.json();
 
-  const togglePassword = () => {
-    setShowPassword(!showPassword);
+      if (json.success === true) {
+        swal({
+          title: "Good job!",
+          text: "Mail sent successfully!",
+          icon: "success",
+          button: "Ok!",
+        });
+        setSendOtp(true);
+      } else {
+        swal({
+          title: "Try Again!",
+          text: json.message || "Something went wrong. Please try again.",
+          icon: "error",
+          button: "Ok!",
+        });
+        setSendOtp(false);
+      }
+    } catch (err) {
+      swal({
+        title: "Try Again!",
+        text: "Server is down or unreachable!",
+        icon: "error",
+        button: "Ok!",
+      });
+    }
   };
 
-  const handleShowPassword = () => {
-    return showPassword ? "text" : "password";
-  };
+  // Step 2: Verify OTP & Change Password
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!validateForm()) return;
 
-  ///////////////////////////for show password toggle_button start//////////////////////////////////////////////////////////////
+    try {
+      const response = await fetch(`${url}/forgotpassword/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: credentials.email,
+          password: credentials.password,
+          authcode: credentials.authcode, 
+        }),
+      });
+       
+      const json = await response.json();
+
+      if (json.success === true) {
+        swal({
+          title: "Success!",
+          text: "Password changed successfully!",
+          icon: "success",
+          button: "Ok!",
+        });
+        navigate("/login");
+      } else {
+        swal({
+          title: "Try Again!",
+          text: typeof json.message === "string" ? json.message : "Invalid OTP or request failed!",
+          icon: "error",
+          button: "Ok!",
+        });
+      }
+    } catch (err) {
+      swal({
+        title: "Try Again!",
+        text: "Server is down or unreachable!",
+        icon: "error",
+        button: "Ok!",
+      });
+    }
+  };
 
   return (
     <div className="container-fluid d-flex px-0 section">
@@ -186,13 +167,13 @@ const ForgotPass = (props) => {
       <section className="right-panel">
         <div className="main-heading">Forgot Password?</div>
         <div className="regular-text">
-          {sendOtp === false
+          {!sendOtp
             ? "Enter the email associated with your account and we'll send an email with instructions to reset the password."
-            : "Mail with verification code send to your email-ID set new password with otp verification"}
+            : "Mail with verification code sent to your email-ID. Set a new password with OTP verification."}
         </div>
         <div className="sep" />
         <div className="page-form">
-          {sendOtp === false ? (
+          {!sendOtp ? (
             <form onSubmit={sendMail}>
               <div className="form-group">
                 <label htmlFor="exampleInputEmail1">
@@ -203,7 +184,6 @@ const ForgotPass = (props) => {
                   type="email"
                   className="form-control"
                   id="exampleInputEmail1"
-                  aria-describedby="emailHelp"
                   placeholder="Enter email"
                   value={credentials.email}
                   onChange={onChange}
@@ -224,7 +204,7 @@ const ForgotPass = (props) => {
               </div>
               <div className="pt-3" />
               <div className="form-button">
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary w-100">
                   Reset Password
                 </button>
               </div>
@@ -232,14 +212,13 @@ const ForgotPass = (props) => {
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label htmlFor="exampleInputEmail1">
+                <label htmlFor="exampleInputauthcode1">
                   Verification Code<span className="required">*</span>
                 </label>
                 <input
-                  type="Number"
+                  type="number"
                   className="form-control"
                   id="exampleInputauthcode1"
-                  aria-describedby="authcodeHelp"
                   placeholder="Enter authcode"
                   value={credentials.authcode}
                   onChange={onChange}
@@ -253,23 +232,23 @@ const ForgotPass = (props) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="exampleInputPassword1">
+                <label htmlFor="exampleInputPassword">
                   Set New Password<span className="required">*</span>
                 </label>
                 <div style={{ position: "relative" }}>
                   <input
-                    type={handleShowPassword()}
+                    type={showPassword ? "text" : "password"}
                     className="form-control"
                     id="exampleInputPassword"
-                    required
-                    minLength={8}
                     placeholder="Password"
                     value={credentials.password}
                     onChange={onChange}
                     name="password"
                   />
                   <i
-                    className="password-icon"
+                    className={`fa-solid ${
+                      showPassword ? "fa-eye-slash" : "fa-eye"
+                    } password-icon`}
                     style={{
                       position: "absolute",
                       top: "50%",
@@ -278,13 +257,7 @@ const ForgotPass = (props) => {
                       cursor: "pointer",
                     }}
                     onClick={togglePassword}
-                  >
-                    {showPassword ? (
-                      <i className="fa-solid fa-eye-slash" />
-                    ) : (
-                      <i className="fa-solid fa-eye" />
-                    )}
-                  </i>
+                  />
                 </div>
                 {errors.password && (
                   <span style={{ color: "red", fontSize: "small" }}>
@@ -295,15 +268,14 @@ const ForgotPass = (props) => {
 
               <div className="pt-3" />
               <div className="form-button">
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary w-100">
                   Reset Password
                 </button>
               </div>
-              <div className="pt-3" />
             </form>
           )}
 
-          <div className="regular-text text-center">
+          <div className="regular-text text-center pt-3">
             Don't have an account? <Link to="/signup">Sign Up</Link>
           </div>
         </div>
