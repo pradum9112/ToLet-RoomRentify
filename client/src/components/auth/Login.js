@@ -5,6 +5,8 @@ import swal from "sweetalert";
 import TestimonialSlider from "../testimonial/TestimonialSlider";
 import { url } from "../../utils/Constants";
 import { UserContext } from "../../context/UserContext.jsx";
+import CryptoJS from "crypto-js";
+const SECRET_KEY = "my_super_secret_remember_me_key";
 
 const Login = () => {
   const { setIslogin } = useContext(UserContext);
@@ -15,6 +17,7 @@ const Login = () => {
     phone: "",
   });
 
+  const [rememberMe, setRememberMe] = useState(false);
   const history = useNavigate();
   const [googleID, setGoogleID] = useState("");
   const [signUpReq, setSignUpReq] = useState(false);
@@ -29,6 +32,11 @@ const Login = () => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  // Toggle Remember Me checkbox
+  const handleRememberMeChange = (e) => {
+    setRememberMe(e.target.checked);
   };
 
   // Google Login Handler
@@ -53,7 +61,7 @@ const Login = () => {
         }),
       });
 
-      const json = await res.json(); // ← Yeh line bahar rakho
+      const json = await res.json(); 
 
       if (json.success) {
         if (typeof window !== "undefined") {
@@ -158,8 +166,24 @@ const Login = () => {
       const json = await response.json();
 
       if (json.success) {
-        console.log("Login Response:", json);
-        console.log("Token Received:", json.authToken);
+     // ENCRYPT PASSWORD BEFORE SAVING TO LOCALSTORAGE
+        if (rememberMe) {
+          const encryptedPassword = CryptoJS.AES.encrypt(
+            credentials.password,
+            SECRET_KEY
+          ).toString();
+
+          localStorage.setItem(
+            "rememberUser",
+            JSON.stringify({
+              email: credentials.email,
+              password: encryptedPassword,
+            })
+          );
+        } else {
+          localStorage.removeItem("rememberUser");
+        }
+
         localStorage.setItem("token", json.authToken);
         localStorage.setItem("userInfo", JSON.stringify(json));
         setIslogin(true);
@@ -198,6 +222,34 @@ const Login = () => {
     return valid;
   };
 
+ /// DECRYPT AND AUTO-FILL EMAIL & PASSWORD ON LOAD
+useEffect(() => {
+  const savedUser = localStorage.getItem("rememberUser");
+  if (savedUser) {
+    try {
+      const parsedUser = JSON.parse(savedUser);
+      
+      if (parsedUser?.email && parsedUser?.password) {
+        // Decrypt password
+        const bytes = CryptoJS.AES.decrypt(parsedUser.password, SECRET_KEY);
+        const decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
+
+        // Fill inputs directly
+        if (decryptedPassword) {
+          setCredentials((prev) => ({
+            ...prev,
+            email: parsedUser.email,
+            password: decryptedPassword,
+          }));
+          setRememberMe(true);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to decrypt saved credentials", e);
+      localStorage.removeItem("rememberUser");
+    }
+  }
+}, []);
   // Initialize Google Button
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -316,9 +368,11 @@ const Login = () => {
                     <input
                       type="checkbox"
                       className="form-check-input"
-                      id="exampleCheck1"
+                      id="rememberMeCheck"
+                      checked={rememberMe}
+                      onChange={handleRememberMeChange}
                     />
-                    <label className="form-check-label" htmlFor="exampleCheck1">
+                    <label className="form-check-label" htmlFor="rememberMeCheck">
                       Remember Me
                     </label>
                   </div>

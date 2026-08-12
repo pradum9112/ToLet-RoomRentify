@@ -56,10 +56,7 @@ function Flat() {
     setFilter({ ...filter, [f]: "" });
   };
 
-  //for pagination
-  //for pagination
-
-  // const [data, setdata] = useState([]);
+  // Pagination
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
@@ -83,9 +80,6 @@ function Flat() {
     setPageSize(newSize);
     setCurrentPage(1);
   };
-
-  //for pagination only ended
-  //for pagination only ended
 
   const getData = async () => {
     const req = `${url}/places?page=${currentPage}&size=${pageSize}&address=${filterData.address}&sort=${sort}&placetype=flat`;
@@ -194,17 +188,15 @@ function Flat() {
                     />
                     <datalist id="data">
                       {list.map((op, i) => (
-                        <option>
+                        <option key={i}>
                           {op.name} , {op.state}
                         </option>
                       ))}
                     </datalist>
                   </div>
-                  {/* <div className="header-divider"></div> */}
 
                   <div className="header-filters">
-
-                  <button
+                    <button
                       name="submit"
                       className="bg-primary text-white px-4 py-2 rounded ml-0"
                     >
@@ -212,7 +204,6 @@ function Flat() {
                     </button>
 
                     <div className="d-flex justify-content-end">
-                      {/* <h4 className="m-auto">SortBy:</h4> */}
                       <select
                         className="form-select ml-1"
                         aria-label="Default select example"
@@ -225,6 +216,7 @@ function Flat() {
                         <option value="old">Date Posted Old first</option>
                       </select>
                     </div>
+
                     <div className="d-flex justify-content-end">
                       <button
                         onClick={handleReset}
@@ -232,15 +224,7 @@ function Flat() {
                       >
                         Reset All
                       </button>
-                      {/* <button
-                        name="submit"
-                        className="bg-primary text-white px-4 py-2 rounded ml-2"
-                      >
-                        Filter
-                      </button> */}
                     </div>
-
-
                   </div>
                 </div>
               </div>
@@ -250,9 +234,7 @@ function Flat() {
               <b>Total {totalCount} Flats Available</b>
             </div>
 
-            {/* card code */}
-            {/* card code */}
-
+            {/* Cards Listing Section */}
             {isLoading ? (
               <div
                 className="circle"
@@ -264,31 +246,34 @@ function Flat() {
               >
                 <CircularProgress />
               </div>
-              ) : !flats ? ( 
-                <div className="container mt-5">
+            ) : !flats ? (
+              <div className="container mt-5">
                 <div className="row justify-content-center">
                   <div className="col-md-6">
-                  <div className="text-center d-grid" style={{gap:"6px"}}>
-                    <h1><strong>Error!</strong></h1>
-                      <p>
-                        Sorry, Failed to Load !
-                      </p>
+                    <div className="text-center d-grid" style={{ gap: "6px" }}>
+                      <h1>
+                        <strong>Error!</strong>
+                      </h1>
+                      <p>Sorry, Failed to Load !</p>
                     </div>
                   </div>
                 </div>
               </div>
-            ) :  flats.length === 0 ? (
+            ) : flats.length === 0 ? (
               <div className="container mt-5">
                 <div className="row justify-content-center">
                   <div className="col-md-6">
-                    <div className="text-center d-grid" style={{gap:"6px"}}>
+                    <div className="text-center d-grid" style={{ gap: "6px" }}>
                       <h1>No Data Found</h1>
                       <p>
                         Sorry, there is no data available to display at the
                         moment.
                       </p>
-                      <a href="#"
-                        onClick={handleReset} className="btn btn-primary">
+                      <a
+                        href="#"
+                        onClick={handleReset}
+                        className="btn btn-primary"
+                      >
                         Remove All Filters
                       </a>
                     </div>
@@ -296,91 +281,110 @@ function Flat() {
                 </div>
               </div>
             ) : (
-              flats.map((flat) => (
-                <div className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
-                  <div className="card-body px-4 py-4">
-                    <div className="row">
-                      <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">
-                        <div className="bg-image rounded hover-zoom hover-overlay ripple">
-                          <img
-                            src={
-                              flat.photos && flat.photos.length > 0
-                                ? flat.photos[0]
-                                : require("./hotel1.jpg")
-                            }
-                            fluid
-                            className="w-100"
-                            alt={
-                              flat.photos && flat.photos.length > 0
-                                ? "flat Photo"
-                                : "Default flat Photo"
-                            }
-                          />
-                          <div
-                            className="mask"
-                            style={{
-                              backgroundColor: "rgba(251, 251, 251, 0.15)",
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <h5>{flat.title}</h5>
-                        <div className="d-flex flex-row">
-                          <div className="text-danger mb-1 me-2">
-                            <i className="fas fa-star"></i>
-                            <i className="fas fa-star"></i>
-                            <i className="fas fa-star"></i>
-                            <i className="fas fa-star"></i>
+              flats.map((flat) => {
+                // Per-Day Price & 10% Discount Calculation
+                const baseDailyPrice = Number(flat?.price) || 0;
+                const discountPerDay = Math.round(baseDailyPrice * 0.1);
+                const discountedDailyPrice = baseDailyPrice - discountPerDay;
+
+                return (
+                  <div
+                    key={flat._id}
+                    className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2"
+                  >
+                    <div className="card-body px-4 py-4">
+                      <div className="row">
+                        <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">
+                          <div className="bg-image rounded hover-zoom hover-overlay ripple">
+                            <img
+                              src={
+                                flat.photos && flat.photos.length > 0
+                                  ? flat.photos[0]
+                                  : require("./hotel1.jpg")
+                              }
+                              className="w-100"
+                              alt={
+                                flat.photos && flat.photos.length > 0
+                                  ? "flat Photo"
+                                  : "Default flat Photo"
+                              }
+                            />
+                            <div
+                              className="mask"
+                              style={{
+                                backgroundColor: "rgba(251, 251, 251, 0.15)",
+                              }}
+                            ></div>
                           </div>
-                          <span>310</span>
                         </div>
-                        <div className="mt-1 text-muted small">
-                          <span>
-                            {flat.perks &&
-                              flat.perks.length > 0 &&
-                              flat.perks.join(" • ")}
-                          </span>
-                          <br />
+
+                        <div className="col-md-6">
+                          <h5>{flat.title}</h5>
+                          <div className="d-flex flex-row">
+                            <div className="text-danger mb-1 me-2">
+                              <i className="fas fa-star"></i>
+                              <i className="fas fa-star"></i>
+                              <i className="fas fa-star"></i>
+                              <i className="fas fa-star"></i>
+                            </div>
+                            <span>310</span>
+                          </div>
+                          <div className="mt-1 text-muted small">
+                            <span>
+                              {flat.perks &&
+                                flat.perks.length > 0 &&
+                                flat.perks.join(" • ")}
+                            </span>
+                            <br />
+                          </div>
+                          <div className="text-muted small">
+                            <span>Owner</span>
+                            <span className="text-primary"> : </span>
+                            <span>{flat.ownername}</span>
+                            <br />
+                          </div>
+                          <div className="mb-1 text-muted small">
+                            <span>Date Posted</span>
+                            <span className="text-primary"> : </span>
+                            <span>
+                              {flat.datecreated
+                                ? flat.datecreated.split("T")[0]
+                                : null}
+                            </span>
+                            <br />
+                          </div>
+                          <p className="text-truncate mb-4 mb-md-0">
+                            {flat.description}
+                          </p>
                         </div>
-                        <div className="text-muted small">
-                          <span>Owner</span>
-                          <span className="text-primary"> : </span>
-                          <span>{flat.ownername}</span>
-                          <br />
-                        </div>
-                        <div className="mb-1 text-muted small">
-                          <span>Date Posted</span>
-                          <span className="text-primary"> : </span>
-                          <span>
-                            {flat.datecreated
-                              ? flat.datecreated.split("T")[0]
-                              : null}
-                          </span>
-                          <br />
-                        </div>
-                        <p className="text-truncate mb-4 mb-md-0">
-                          {flat.description}
-                        </p>
-                      </div>
-                      <div className="col-md-6 col-lg-3 border-sm-start-none border-start">
-                        <div className="d-flex flex-row align-items-center mb-1">
-                          <h4 className="me-1">₹{flat.price*30}</h4>
-                          <span className="text-danger">
-                            <s>₹{flat.price*30 + 120}</s>
-                          </span>
-                          <h4 className="ml-2">per month</h4>
-                        </div>
-                        <h6 className="text-success">{flat.address}</h6>
-                        <div className="d-flex flex-column mt-4">
-                          {/* <Link to={`/detail/${flat._id}`}>
-                            <button className="btn btn-primary btn-sm">
-                              Details
-                            </button>
-                          </Link> */}
-                          {flat.isbooked ? (
-                              <button disabled={true} className="btn btn-primary btn-sm" style={{"background" : "#534173" ,
-                                "borderColor" : "#534173"}}>
+
+                        <div className="col-md-6 col-lg-3 border-sm-start-none border-start">
+                          {/* Updated Daily Price Section */}
+                          <div className="d-flex flex-row align-items-center mb-1">
+                            <h4 className="me-2 mb-0">₹{discountedDailyPrice}</h4>
+                            <span className="text-danger me-2">
+                              <small>
+                                <s>₹{baseDailyPrice}</s>
+                              </small>
+                            </span>
+                            <span className="text-muted text-sm">/ night</span>
+                          </div>
+                          <div className="text-success text-xs font-bold mb-2">
+                            10% OFF Applied
+                          </div>
+
+                          <h6 className="text-success">{flat.address}</h6>
+
+                          <div className="d-flex flex-column mt-4">
+                            {flat.isbooked ? (
+                              <button
+                                disabled={true}
+                                className="btn btn-primary btn-sm"
+                                style={{
+                                  background: "#534173",
+                                  borderColor: "#534173",
+                                }}
+                              >
                                 Already Booked!
                               </button>
                             ) : (
@@ -390,23 +394,22 @@ function Flat() {
                                 </button>
                               </Link>
                             )}
-                          <button
-                            className="btn btn-outline-primary btn-sm mt-2"
-                            onClick={() => addtosaved(flat._id)}
-                          >
-                            Add to wish list
-                          </button>
+                            <button
+                              className="btn btn-outline-primary btn-sm mt-2"
+                              onClick={() => addtosaved(flat._id)}
+                            >
+                              Add to wish list
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
 
-            {/* card code ended*/}
-            {/* card code ended*/}
-
+            {/* Pagination Controls */}
             <div className="grid-size pb-2">
               <label htmlFor="pageSizeSelect">Page Size: </label>
               <select
@@ -422,7 +425,10 @@ function Flat() {
               </select>
             </div>
             <div className="grid-contols p-4 pt-0">
-              <button disabled={currentPage === 1} onClick={handlePreviousPage}>
+              <button
+                disabled={currentPage === 1}
+                onClick={handlePreviousPage}
+              >
                 Previous Page
               </button>
               <button

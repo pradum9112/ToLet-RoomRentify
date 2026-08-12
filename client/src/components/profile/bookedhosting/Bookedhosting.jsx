@@ -13,8 +13,7 @@ export default function Bookedhosting() {
   const [bookings, setBookings] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const authToken = localStorage.getItem("token");
-  const { islogin, setIslogin, setSelectedChat, setChats, chats } =
-    useContext(UserContext);
+  const { islogin, setSelectedChat } = useContext(UserContext);
   const navigate = useNavigate();
 
   const getbookedHostings = async () => {
@@ -103,8 +102,6 @@ export default function Bookedhosting() {
         config
       );
 
-      // if (!chats.find((c) => c._id === data._id)) setChats([data, ...chats]);
-
       setSelectedChat(data);
       navigate("/chats");
     } catch (error) {
@@ -132,36 +129,36 @@ export default function Bookedhosting() {
           >
             <CircularProgress />
           </div>
-          ) : !bookings ? ( 
-            <div className="container mt-5">
+        ) : !bookings ? (
+          <div className="container mt-5">
             <div className="row justify-content-center">
               <div className="col-md-6">
-              <div className="text-center d-grid" style={{gap:"6px"}}>
-                <h1><strong>Error!</strong></h1>
-                  <p>
-                    Sorry, Failed to Load !
-                  </p>
+                <div className="text-center d-grid" style={{ gap: "6px" }}>
+                  <h1>
+                    <strong>Error!</strong>
+                  </h1>
+                  <p>Sorry, Failed to Load !</p>
                 </div>
               </div>
             </div>
           </div>
         ) : bookings.length === 0 ? (
           <div className="container mt-5">
-                <div className="row justify-content-center">
-                  <div className="col-md-6">
-                    <div className="text-center d-grid" style={{gap:"6px"}}>
-                      <h1>No Data Found</h1>
-                      <p>
-                        Sorry, there is no data available to display at the
-                        moment.
-                      </p>
-                    </div>
-                  </div>
+            <div className="row justify-content-center">
+              <div className="col-md-6">
+                <div className="text-center d-grid" style={{ gap: "6px" }}>
+                  <h1>No Data Found</h1>
+                  <p>
+                    Sorry, there is no data available to display at the
+                    moment.
+                  </p>
                 </div>
               </div>
+            </div>
+          </div>
         ) : (
           bookings.map((booking) => (
-            <div className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
+            <div key={booking._id} className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
               <div className="card-body px-4 py-4">
                 <div className="row">
                   <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">
@@ -203,11 +200,9 @@ export default function Bookedhosting() {
                     </div>
                   </div>
                   <div className="col-md-6 col-lg-3 border-sm-start-none border-start">
+                    {/* Shows Actual Booking Amount directly from DB */}
                     <div className="d-flex flex-row align-items-center mb-1">
-                      <h4 className="me-1">${booking.price}</h4>
-                      <span className="text-danger">
-                        <s>$20.99</s>
-                      </span>
+                      <h4 className="me-1 fw-bold">₹{booking.price}</h4>
                     </div>
                     <h6 className="text-success">{booking.place.address}</h6>
                     <div className="d-flex flex-column mt-4">

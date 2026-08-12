@@ -23,11 +23,9 @@ export default function PlacesFormPage() {
   const [maxGuests, setMaxGuests] = useState(1);
   const [price, setPrice] = useState(100);
   const [redirect, setRedirect] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const authToken = localStorage.getItem("token");
   const {
     islogin,
-    setIslogin,
     setLatitude,
     latitude,
     longitude,
@@ -83,6 +81,7 @@ export default function PlacesFormPage() {
       }
     }
   }, [id]);
+
   function inputHeader(text) {
     return <h2 className="text-2xl mt-4">{text}</h2>;
   }
@@ -166,6 +165,7 @@ export default function PlacesFormPage() {
             <span>Longitude:{longitude}</span>
           </div>
           <button
+            type="button"
             onClick={() => navigate("/map")}
             className="bg-gray-200 px-4 rounded-2xl"
           >
@@ -184,7 +184,7 @@ export default function PlacesFormPage() {
         />
         <datalist id="data">
           {list.map((op, i) => (
-            <option>
+            <option key={i}>
               {op.name} , {op.state}
             </option>
           ))}
@@ -205,7 +205,6 @@ export default function PlacesFormPage() {
           "Type of your place. should be name as room, hotel, flat"
         )}
         <select
-          type="text"
           name="placetype"
           value={placetype}
           onChange={(ev) => setPlacetype(ev.target.value)}

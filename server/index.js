@@ -1,9 +1,13 @@
+process.env.FORCE_COLOR = "3";
 require("dotenv").config();
 const express = require("express");
 const connectToMongo = require("./db");
 const cloudinary = require("cloudinary").v2;
 const cors = require("cors");
 const app = express();
+const morgan = require('morgan')
+const chalk = require("chalk");
+
 const port = process.env.PORT || 5101;
 
 // Middleware
@@ -11,6 +15,7 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+app.use(morgan('dev'));
 
 // Connect to MongoDB
 connectToMongo();
@@ -32,7 +37,7 @@ app.get("/", (req, res) => {
   });
 });
 app.use('/auth', require('./routes/auth'))
-app.use('/fogotpassword', require('./routes/forgotpass'));
+app.use('/forgotpassword', require('./routes/forgotpass'));
 app.use('/oauth', require('./routes/oauth'));
 app.use('/testimonial', require('./routes/testimonial'))
 
@@ -45,9 +50,11 @@ app.use('/chats',require('./routes/chats'));
 
 // Start the server
 const server = app.listen(port, () => {
-  console.log(`Server started on port ${port}`);
+  console.log(
+    chalk.blue.bold("🚀 Server started successfully on port: ") +
+    chalk.yellow.bold(port)
+  );
 });
-
 
 ////////////////////////// real time chat functionality started //////////////////////////////
 
