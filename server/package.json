@@ -23,6 +23,7 @@
     "moment-timezone": "^0.5.48",
     "mongoose": "^8.18.0",
     "mongoose-findorcreate": "^4.0.0",
+    "morgan": "^1.11.0",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.5",
     "passport-local-mongoose": "^8.0.0",

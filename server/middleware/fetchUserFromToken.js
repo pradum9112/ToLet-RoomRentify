@@ -29,7 +29,8 @@ const fetchUser = (req, res, next) => {
     console.error("JWT Error:", error.message);
     return res.status(401).json({
       success: false,
-      message: "Invalid or expired token"
+      message: "Invalid or expired token",
+      isExpired: true
     });
   }
 };
