@@ -1,4 +1,3 @@
-/* global google */
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -6,9 +5,40 @@ import swal from "sweetalert";
 import TestimonialSlider from "../testimonial/TestimonialSlider";
 import { url } from "../../utils/Constants";
 import { UserContext } from "../../context/UserContext.jsx";
+import { PhoneInput } from "react-international-phone";
+import "react-international-phone/style.css";
+import "../../assets/styles/signup.css"; //
+
+// PhoneField Sub-component (Outer level so it doesn't lose focus on re-render)
+const CustomPhoneField = ({ value, onChange, error }) => (
+  <div className="form-group">
+    <label>
+      Phone <span className="required">*</span>
+    </label>
+    <PhoneInput
+      defaultCountry="in"
+      value={value}
+      onChange={onChange}
+      inputClassName="form-control"
+      className="phone-input-box"
+      style={{
+        "--react-international-phone-height": "38px",
+        "--react-international-phone-border-radius": "0.375rem",
+        "--react-international-phone-border-color": "#ced4da",
+        width: "100%",
+      }}
+    />
+    {error && (
+      <span style={{ color: "red", fontSize: "small", display: "block", marginTop: "4px" }}>
+        {error}
+      </span>
+    )}
+  </div>
+);
 
 const Signup = (props) => {
   const { setIslogin } = useContext(UserContext);
+  const navigate = useNavigate();
 
   const [credentials, setCredentials] = useState({
     fname: "",
@@ -16,10 +46,9 @@ const Signup = (props) => {
     email: props.email || "",
     password: "",
     phone: "",
-    authcode: "", // ← Changed from null to empty string
+    authcode: "",
   });
 
-  const history = useNavigate();
   const [sendOtp, setSendOtp] = useState(false);
   const [googleID, setGoogleID] = useState("");
   const [signUpReq, setSignUpReq] = useState(false);
@@ -28,41 +57,51 @@ const Signup = (props) => {
 
   const togglePassword = () => setShowPassword(!showPassword);
 
-  // Google Auth
+  // Phone Sanitizer & Helper Validator
+  const isPhoneValid = (phoneNum) => {
+    // Remove non-digit characters except leading plus
+    const cleanNumber = (phoneNum || "").replace(/[^\d+]/g, "");
+    return /^\+[1-9]\d{7,14}$/.test(cleanNumber);
+  };
+
+  // Google Auth Setup
   useEffect(() => {
     if (localStorage.getItem("token")) {
-      history("/");
+      navigate("/");
       return;
     }
 
     const initGAuth = () => {
-      if (typeof google === "undefined" || !google.accounts) return;
+      if (typeof window.google === "undefined" || !window.google.accounts) return;
 
-      google.accounts.id.initialize({
-        // client_id:process.env.REACT_APP_GOOGLE_CLIENT_ID,
-        client_id:"556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
+      window.google.accounts.id.initialize({
+        client_id:
+          "556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
         callback: handleCallbackResponse,
         auto_select: false,
         cancel_on_tap_outside: false,
         use_fedcm_for_prompt: false,
       });
 
-      google.accounts.id.renderButton(document.getElementById("googlebtn"), {
-        theme: "outline",
-        size: "large",
-        text: "continue_with",
-        shape: "pill",
-        logo_alignment: "center",
-        width: "320",
-      });
+      const btn = document.getElementById("googlebtn");
+      if (btn) {
+        window.google.accounts.id.renderButton(btn, {
+          theme: "outline",
+          size: "large",
+          text: "continue_with",
+          shape: "pill",
+          logo_alignment: "center",
+          width: "320",
+        });
+      }
     };
 
-    if (typeof google !== "undefined" && google.accounts) {
+    if (typeof window.google !== "undefined" && window.google.accounts) {
       initGAuth();
     } else {
       window.onGoogleLibraryLoad = initGAuth;
     }
-  }, [history]);
+  }, [navigate]);
 
   const handleCallbackResponse = async (response) => {
     try {
@@ -88,26 +127,23 @@ const Signup = (props) => {
       const json = await res.json();
 
       if (json.success === true) {
-        // Already registered Google user
-        if (typeof window !== "undefined") {
-          localStorage.setItem("token", json.authToken);
-          localStorage.setItem("userInfo", JSON.stringify(json));
-        }
+        localStorage.setItem("token", json.authToken);
+        localStorage.setItem("userInfo", JSON.stringify(json));
         setIslogin(true);
         swal({
           title: "Welcome Back!",
           text: "Logged in Successfully",
           icon: "success",
         });
-        history("/");
+        navigate("/");
       } else if (json.requireSignup === true) {
-        // New Google user
         setSignUpReq(true);
       } else {
-        // User exists with different method
         swal({
-          title: "Account Already Exist",
-          text: json.message || "User with given email id already exist. Please Login",
+          title: "Account Already Exists",
+          text:
+            json.message ||
+            "User with given email id already exists. Please Login",
           icon: "info",
         });
       }
@@ -125,10 +161,22 @@ const Signup = (props) => {
     }));
   };
 
-  // Google Signup (Phone)
+  const handlePhoneChange = (phone) => {
+    setCredentials((prev) => ({ ...prev, phone }));
+  };
+
+  // Google Signup
   const handleGoogleSubmit = async (event) => {
     event.preventDefault();
-    if (!credentials.phone || credentials.phone.length < 10) return;
+
+    if (!isPhoneValid(credentials.phone)) {
+      swal({
+        title: "Invalid Phone",
+        text: "Enter a valid phone number with country code",
+        icon: "error",
+      });
+      return;
+    }
 
     try {
       const response = await fetch(`${url}/oauth/google/signup`, {
@@ -137,7 +185,7 @@ const Signup = (props) => {
         body: JSON.stringify({
           fname: credentials.fname,
           lname: credentials.lname,
-          phone: credentials.phone,
+          phone: credentials.phone.replace(/[^\d+]/g, ""),
           email: credentials.email,
           googleId: googleID,
         }),
@@ -145,17 +193,15 @@ const Signup = (props) => {
       const json = await response.json();
 
       if (json.success) {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("token", json.authToken);
-          localStorage.setItem("userInfo", JSON.stringify(json));
-        }
+        localStorage.setItem("token", json.authToken);
+        localStorage.setItem("userInfo", JSON.stringify(json));
         setIslogin(true);
         swal({
           title: "Success!",
           text: "Account Created Successfully",
           icon: "success",
         });
-        history("/");
+        navigate("/");
       } else {
         swal({
           title: "Try Again!",
@@ -168,43 +214,53 @@ const Signup = (props) => {
     }
   };
 
- const sendMail = async (event) => {
-  event.preventDefault();
-  if (!validateForm()) return;
+  const sendMail = async (event) => {
+    event.preventDefault();
+    if (!validateForm()) return;
 
-  try {
-    const response = await fetch(`${url}/auth/signup/email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: credentials.email }),
-    });
-
-    // Safe JSON parse
-    const json = await response.json().catch(() => ({}));
-
-    if (json.success === true) {
-      swal({
-        title: "Good job!",
-        text: "Verification code sent to email!",
-        icon: "success",
+    try {
+      const response = await fetch(`${url}/auth/signup/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: credentials.email }),
       });
-      setSendOtp(true);
-    } else {
+
+      const json = await response.json().catch(() => ({}));
+
+      if (json.success === true) {
+        swal({
+          title: "Good job!",
+          text: "Verification code sent to email!",
+          icon: "success",
+        });
+        setSendOtp(true);
+        return;
+      }
+
+      const msg = (json.message || "").toLowerCase();
+      const alreadyExists =
+        msg.includes("already") ||
+        msg.includes("exist") ||
+        msg.includes("registered");
+
       swal({
-        title: "Account Already Exist",
-        text: json.message || "User with given email id already exist. Please Login",
+        title: alreadyExists ? "Account Already Exists" : "Try Again!",
+        text:
+          json.message ||
+          (alreadyExists
+            ? "User with given email already exists. Please Login"
+            : "Could not send verification code. Please try again."),
+        icon: "error",
+      });
+    } catch (err) {
+      console.error(err);
+      swal({
+        title: "Try Again!",
+        text: "Server error! Please try again later.",
         icon: "error",
       });
     }
-  } catch (err) {
-    console.error(err);
-    swal({ 
-      title: "Try Again!", 
-      text: "Server error! Please try again later.", 
-      icon: "error" 
-    });
-  }
-};
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -217,14 +273,13 @@ const Signup = (props) => {
         body: JSON.stringify({
           fname: credentials.fname,
           lname: credentials.lname,
-          phone: credentials.phone,
+          phone: credentials.phone.replace(/[^\d+]/g, ""),
           email: credentials.email,
           password: credentials.password,
-          authcode: Number(credentials.authcode),
+          authcode: String(credentials.authcode),
         }),
       });
       const json = await response.json();
-      
 
       if (json.success) {
         swal({
@@ -235,11 +290,15 @@ const Signup = (props) => {
         localStorage.setItem("token", json.authToken);
         localStorage.setItem("userInfo", JSON.stringify(json));
         setIslogin(true);
-        history("/");
-      } else {  
+        navigate("/");
+      } else {
+        const msg = (json.message || "").toLowerCase();
+        const alreadyExists =
+          msg.includes("already") || msg.includes("exist");
+
         swal({
-          title: "Account Already Exist",
-          text: json.message || "User with given email id already exist. Please Login",
+          title: alreadyExists ? "Account Already Exists" : "Try Again!",
+          text: json.message || "Invalid OTP or request failed",
           icon: "error",
         });
       }
@@ -252,20 +311,20 @@ const Signup = (props) => {
     let newErrors = {};
     let valid = true;
 
-    if (!credentials.fname?.trim() || credentials.fname.length < 2) {
-      newErrors.fname = "First name at least 2 characters";
+    if (!credentials.fname?.trim() || credentials.fname.trim().length < 2) {
+      newErrors.fname = "First name must be at least 2 characters";
       valid = false;
     }
-    if (!credentials.lname?.trim() || credentials.lname.length < 2) {
-      newErrors.lname = "Last name at least 2 characters";
+    if (!credentials.lname?.trim() || credentials.lname.trim().length < 2) {
+      newErrors.lname = "Last name must be at least 2 characters";
       valid = false;
     }
     if (!credentials.email || !/\S+@\S+\.\S+/.test(credentials.email)) {
       newErrors.email = "Invalid email format";
       valid = false;
     }
-    if (!credentials.phone || !/^\d{10}$/.test(credentials.phone)) {
-      newErrors.phone = "Enter valid 10 digit phone number";
+    if (!isPhoneValid(credentials.phone)) {
+      newErrors.phone = "Enter a valid phone number with country code";
       valid = false;
     }
     if (!credentials.password || credentials.password.length < 8) {
@@ -281,7 +340,7 @@ const Signup = (props) => {
     let newErrors = {};
     let valid = true;
 
-    if (!credentials.authcode || credentials.authcode.length !== 6) {
+    if (!credentials.authcode || String(credentials.authcode).length !== 6) {
       newErrors.authcode = "Verification code must be 6 digits";
       valid = false;
     }
@@ -300,7 +359,7 @@ const Signup = (props) => {
         <div className="regular-text">
           Thank you for choosing to register with us!
           <br />
-          {sendOtp === false
+          {!sendOtp
             ? "Please fill out the following form to create your account"
             : "Verification code has been sent to your email"}
         </div>
@@ -309,19 +368,11 @@ const Signup = (props) => {
         <div className="page-form">
           {signUpReq ? (
             <form onSubmit={handleGoogleSubmit}>
-              <div className="form-group">
-                <label>
-                  Phone <span className="required">*</span>
-                </label>
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="Enter phone number"
-                  name="phone"
-                  value={credentials.phone}
-                  onChange={onChange}
-                />
-              </div>
+              <CustomPhoneField
+                value={credentials.phone}
+                onChange={handlePhoneChange}
+                error={errors.phone}
+              />
               <button
                 type="submit"
                 className="btn btn-primary"
@@ -330,7 +381,7 @@ const Signup = (props) => {
                 Create Account
               </button>
             </form>
-          ) : sendOtp === false ? (
+          ) : !sendOtp ? (
             <form onSubmit={sendMail}>
               <div className="form-group">
                 <div className="row">
@@ -371,23 +422,11 @@ const Signup = (props) => {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>
-                  Phone <span className="required">*</span>
-                </label>
-                <input
-                  type="number"
-                  className="form-control"
-                  name="phone"
-                  value={credentials.phone}
-                  onChange={onChange}
-                />
-                {errors.phone && (
-                  <span style={{ color: "red", fontSize: "small" }}>
-                    {errors.phone}
-                  </span>
-                )}
-              </div>
+              <CustomPhoneField
+                value={credentials.phone}
+                onChange={handlePhoneChange}
+                error={errors.phone}
+              />
 
               <div className="form-group">
                 <div className="row">
@@ -421,7 +460,9 @@ const Signup = (props) => {
                         onChange={onChange}
                       />
                       <i
-                        className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} password-icon`}
+                        className={`fa-solid ${
+                          showPassword ? "fa-eye-slash" : "fa-eye"
+                        } password-icon`}
                         onClick={togglePassword}
                         style={{
                           position: "absolute",
@@ -472,13 +513,14 @@ const Signup = (props) => {
                   Verification Code <span className="required">*</span>
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   className="form-control"
                   placeholder="Enter 6 digit code"
                   name="authcode"
                   value={credentials.authcode}
                   onChange={onChange}
                   maxLength={6}
+                  inputMode="numeric"
                 />
                 {errors.authcode && (
                   <span style={{ color: "red", fontSize: "small" }}>
@@ -486,7 +528,11 @@ const Signup = (props) => {
                   </span>
                 )}
               </div>
-              <button type="submit" className="btn btn-primary" style={{ backgroundColor: "#0d6efd" }}>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ backgroundColor: "#0d6efd" }}
+              >
                 Verify OTP
               </button>
             </form>

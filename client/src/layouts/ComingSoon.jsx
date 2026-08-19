@@ -27,7 +27,7 @@ function ComingSoon() {
             <br />
             <p>
               Stay tuned to unwrap your home dreams come true
-              <br /> starting with <strong>To-Let platform</strong>.
+              <br /> starting with <strong>To-Let RoomRentify platform</strong>.
             </p>
             <br/>
             <h1><strong>Coming Soon...</strong></h1>

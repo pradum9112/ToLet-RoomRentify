@@ -50,11 +50,11 @@ Router.post(
       // Send Welcome Email
       const msg = `Dear ${fullname},<br><br>
                    Congratulations on joining us!<br>
-                   Thank you for choosing TO-LET.<br><br>
+                   Thank you for choosing TO-LET ROOM RENTIFY!.<br><br>
                    Best regards,<br>Pradum Sonkar`;
 
       try {
-        await Mailer(req.body.email, "Welcome to TO-LET!", msg);
+        await Mailer(req.body.email, "Welcome to TO-LET ROOM RENTIFY!", msg);
       } catch (mailErr) {
         console.error("Email sending failed:", mailErr);
         // Don't fail the signup just because email failed

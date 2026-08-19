@@ -1,0 +1,37 @@
+/* Full width + height match form-control */
+.phone-input-box,
+.phone-input-box .react-international-phone-input-container {
+  width: 100%;
+}
+
+.phone-input-box .react-international-phone-input-container {
+  height: 38px;
+}
+
+/* Input + country button corners */
+.phone-input-box .react-international-phone-input,
+.phone-input-box .react-international-phone-country-selector-button {
+  height: 38px !important;
+  border-radius: 10px !important;
+  border-color: #ced4da !important;
+}
+
+.phone-input-box .react-international-phone-country-selector-button {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  margin-right: 0;
+}
+
+.phone-input-box .react-international-phone-input {
+  width: 100% !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+/* Dropdown list z-index */
+.phone-input-box .react-international-phone-country-selector-dropdown {
+  z-index: 9999 !important;
+  border-radius: 10px !important;
+  max-height: 240px;
+  overflow-y: auto;
+}
