@@ -12,9 +12,15 @@ Router.post(
   [
     body("googleId", "Enter a valid googleID").isLength({ min: 15 }),
     body("email", "Enter a valid email address").isEmail(),
-    body("phone", "Enter a valid 10-digit phone number").isLength({ min: 10, max: 10 }).isNumeric(),
-    body("fname", "First name must be at least 2 characters").isLength({ min: 2 }),
-    body("lname", "Last name must be at least 2 characters").isLength({ min: 2 }),
+    body("phone", "Enter a valid 10-digit phone number")
+      .isLength({ min: 10, max: 10 })
+      .isNumeric(),
+    body("fname", "First name must be at least 2 characters").isLength({
+      min: 2,
+    }),
+    body("lname", "Last name must be at least 2 characters").isLength({
+      min: 2,
+    }),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -41,11 +47,11 @@ Router.post(
         email: req.body.email,
         phone: req.body.phone,
         password: null,
-        googleId: req.body.googleId,        
+        googleId: req.body.googleId,
       });
 
       const payload = { user: { id: user.id } };
-      const authToken = jwt.sign(payload, JWT_SECRET,{ expiresIn: "1h" });
+      const authToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
 
       // Send Welcome Email
       const msg = `Dear ${fullname},<br><br>
@@ -67,9 +73,11 @@ Router.post(
       });
     } catch (error) {
       console.error(error.message);
-      res.status(500).json({ success: false, message: "Internal server error" });
+      res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
     }
-  }
+  },
 );
 
 Router.post(
@@ -102,7 +110,7 @@ Router.post(
 
       // User exists with Google
       const payload = { user: { id: user.id } };
-      const authToken = jwt.sign(payload, JWT_SECRET,{ expiresIn: "1h" });
+      const authToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
 
       res.json({
         success: true,
@@ -115,9 +123,11 @@ Router.post(
       });
     } catch (error) {
       console.error(error.message);
-      res.status(500).json({ success: false, message: "Internal server error" });
+      res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
     }
-  }
+  },
 );
 
 module.exports = Router;

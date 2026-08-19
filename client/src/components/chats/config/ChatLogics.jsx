@@ -48,8 +48,7 @@ export const getSender = (loggedUser, users) => {
   const loggedId = getId(loggedUser);
   if (!loggedId) return "Unknown";
 
-  const other =
-    getId(users[0]) === loggedId ? users[1] : users[0];
+  const other = getId(users[0]) === loggedId ? users[1] : users[0];
 
   return (
     other?.username ||

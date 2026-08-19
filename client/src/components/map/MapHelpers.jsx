@@ -10,7 +10,10 @@ export function MapEngineFixer({ darkMode, searchTarget }) {
     map.invalidateSize();
     const t1 = setTimeout(() => map.invalidateSize(), 50);
     const t2 = setTimeout(() => map.invalidateSize(), 300);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [map, darkMode]);
 
   useEffect(() => {

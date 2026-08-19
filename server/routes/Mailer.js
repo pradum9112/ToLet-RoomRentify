@@ -11,7 +11,7 @@ const nodemailer = require("nodemailer");
 const Mailer = async (to, sub, body) => {
   try {
     const email = (process.env.EMAIL || "").trim();
-   
+
     const mailPass = (process.env.EMAIL_PASS || "").replace(/\s/g, "");
 
     console.log("MAIL CHECK:", {
@@ -34,7 +34,7 @@ const Mailer = async (to, sub, body) => {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,
-      secure: true, 
+      secure: true,
       auth: {
         user: email,
         pass: mailPass,
@@ -44,13 +44,11 @@ const Mailer = async (to, sub, body) => {
       socketTimeout: 20000,
     });
 
-   
     try {
       await transporter.verify();
       console.log("MAIL: SMTP connection verified");
     } catch (verifyErr) {
       console.error("MAIL VERIFY ERROR:", verifyErr.message);
-     
     }
 
     const mailOptions = {

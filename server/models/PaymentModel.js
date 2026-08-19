@@ -33,7 +33,7 @@ const PaymentSchema = new mongoose.Schema(
     razorpayPaymentId: String,
     razorpaySignature: String,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Payment", PaymentSchema);

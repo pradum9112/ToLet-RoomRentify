@@ -3,7 +3,6 @@ const Place = require("../models/Place.js");
 
 const Router = express.Router();
 
-
 Router.get("/", async (req, res) => {
   const page = req.query.page || 1;
   const ITEM_PER_PAGE = req.query.size || 6;
@@ -14,7 +13,7 @@ Router.get("/", async (req, res) => {
 
     const query = {
       ...(address && { address: { $regex: address, $options: "i" } }),
-      ...(placetype && { placetype: { $regex: placetype, $options: "i" } })
+      ...(placetype && { placetype: { $regex: placetype, $options: "i" } }),
     };
 
     let sortOptions = {};
@@ -26,7 +25,10 @@ Router.get("/", async (req, res) => {
     }
 
     const count = await Place.countDocuments(query);
-    const placesdata = await Place.find(query).sort(sortOptions).limit(ITEM_PER_PAGE).skip(skip);
+    const placesdata = await Place.find(query)
+      .sort(sortOptions)
+      .limit(ITEM_PER_PAGE)
+      .skip(skip);
 
     const pageCount = Math.ceil(count / ITEM_PER_PAGE);
 
@@ -37,7 +39,6 @@ Router.get("/", async (req, res) => {
       },
       placesdata,
     });
-
   } catch (error) {
     res.status(500).json({ message: "Some errors occurred", success: false });
   }
@@ -71,6 +72,5 @@ Router.get("/:id", async (req, res) => {
     res.status(400).send("Error while getting the place. Try again later.");
   }
 });
-
 
 module.exports = Router;

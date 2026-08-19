@@ -289,7 +289,7 @@ function Room() {
               rooms.map((room) => {
                 // Per Night Pricing Math with 10% Discount
                 const basePrice = Number(room.price) || 0;
-                const discount = Math.round(basePrice * 0.10);
+                const discount = Math.round(basePrice * 0.1);
                 const discountedPrice = basePrice - discount;
 
                 return (
@@ -370,11 +370,16 @@ function Room() {
                             {/* Struck-through Original Base Price */}
                             <span
                               className="text-danger text-sm"
-                              style={{ color: "red", textDecoration: "line-through" }}
+                              style={{
+                                color: "red",
+                                textDecoration: "line-through",
+                              }}
                             >
                               ₹{basePrice}
                             </span>
-                            <span className="ml-1 text-muted text-sm">/ night</span>
+                            <span className="ml-1 text-muted text-sm">
+                              / night
+                            </span>
                           </div>
 
                           {/* 10% OFF Offer Badge */}

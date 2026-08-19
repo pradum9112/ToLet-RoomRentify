@@ -99,7 +99,7 @@ export default function Bookedhosting() {
       const { data } = await axios.post(
         `${url}/chats`,
         { guestuserId },
-        config
+        config,
       );
 
       setSelectedChat(data);
@@ -149,8 +149,7 @@ export default function Bookedhosting() {
                 <div className="text-center d-grid" style={{ gap: "6px" }}>
                   <h1>No Data Found</h1>
                   <p>
-                    Sorry, there is no data available to display at the
-                    moment.
+                    Sorry, there is no data available to display at the moment.
                   </p>
                 </div>
               </div>
@@ -158,7 +157,10 @@ export default function Bookedhosting() {
           </div>
         ) : (
           bookings.map((booking) => (
-            <div key={booking._id} className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
+            <div
+              key={booking._id}
+              className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2"
+            >
               <div className="card-body px-4 py-4">
                 <div className="row">
                   <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">

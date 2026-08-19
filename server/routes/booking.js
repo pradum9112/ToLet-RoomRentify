@@ -25,7 +25,7 @@ Router.post("/bookings", fetchUser, async (req, res) => {
       price,
     } = req.body;
 
-    const placeDoc = await Place.findOne({ _id : place });
+    const placeDoc = await Place.findOne({ _id: place });
 
     console.log(placeDoc);
 
@@ -38,7 +38,9 @@ Router.post("/bookings", fetchUser, async (req, res) => {
 
     await Place.updateOne({ _id: placeDoc._id }, { $set: { isbooked: true } });
 
-    const datecreated = moment.tz(new Date(), 'Asia/Kolkata').format("YYYY-MM-DD hh:mm:ss");
+    const datecreated = moment
+      .tz(new Date(), "Asia/Kolkata")
+      .format("YYYY-MM-DD hh:mm:ss");
 
     const bookingDoc = await Booking.create({
       place,
@@ -60,8 +62,6 @@ Router.post("/bookings", fetchUser, async (req, res) => {
   }
 });
 
-
-
 Router.delete("/cancelbooking/:id", fetchUser, async (req, res) => {
   try {
     const { id } = req.params;
@@ -72,7 +72,7 @@ Router.delete("/cancelbooking/:id", fetchUser, async (req, res) => {
       return res.status(404).json({ message: "booking not found" });
     }
 
-    const placeDoc = await Place.findOne( { _id: bookings.place } );
+    const placeDoc = await Place.findOne({ _id: bookings.place });
     if (!placeDoc) {
       return res.status(404).json({ message: "Place not found." });
     }
@@ -88,7 +88,6 @@ Router.delete("/cancelbooking/:id", fetchUser, async (req, res) => {
     res.status(400).json(error);
   }
 });
-
 
 Router.get("/allbookings", fetchUser, async (req, res) => {
   try {
@@ -129,7 +128,9 @@ Router.post("/addsaved/:id", fetchUser, async (req, res) => {
       const savedData = await Usercontact.addsaveddata(saved);
 
       await Usercontact.save();
-      res.status(201).json({ message: "Successfully added in wishlist", success: true });
+      res
+        .status(201)
+        .json({ message: "Successfully added in wishlist", success: true });
     }
   } catch (error) {
     console.log(error);

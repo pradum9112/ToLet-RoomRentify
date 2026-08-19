@@ -21,9 +21,15 @@ import { UserContext } from "../context/UserContext.jsx";
 
 const Navbar = () => {
   const history = useNavigate();
-  const { islogin, setIslogin,user, setUser,username, setUsername ,checkToken } =
-    useContext(UserContext);
-  
+  const {
+    islogin,
+    setIslogin,
+    user,
+    setUser,
+    username,
+    setUsername,
+    checkToken,
+  } = useContext(UserContext);
 
   const logout = async () => {
     localStorage.removeItem("token");
@@ -54,7 +60,6 @@ const Navbar = () => {
                 <strong>RoomRentify</strong>
               </span>
             </div>
-           
           </div>
           <div className="nav-right">
             <div className="nav-tabs">

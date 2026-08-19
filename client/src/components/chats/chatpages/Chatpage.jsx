@@ -8,11 +8,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 
 const Chatpage = () => {
   const [fetchAgain, setFetchAgain] = useState(false);
-  const {
-    islogin,
-    user,
-    setUser,
-  } = useContext(UserContext);
+  const { islogin, user, setUser } = useContext(UserContext);
 
   const navigate = useNavigate();
 

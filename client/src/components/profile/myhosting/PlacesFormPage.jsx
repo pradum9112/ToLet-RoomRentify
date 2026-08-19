@@ -24,13 +24,8 @@ export default function PlacesFormPage() {
   const [price, setPrice] = useState(100);
   const [redirect, setRedirect] = useState(false);
   const authToken = localStorage.getItem("token");
-  const {
-    islogin,
-    setLatitude,
-    latitude,
-    longitude,
-    setLongitude,
-  } = useContext(UserContext);
+  const { islogin, setLatitude, latitude, longitude, setLongitude } =
+    useContext(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -126,7 +121,7 @@ export default function PlacesFormPage() {
               "Access-Control-Allow-Origin": "*",
               token: authToken,
             },
-          }
+          },
         );
         setRedirect(true);
       } else {
@@ -192,7 +187,7 @@ export default function PlacesFormPage() {
 
         {preInput(
           "Title",
-          "Title for your place. should be short and catchy as in advertisement"
+          "Title for your place. should be short and catchy as in advertisement",
         )}
         <input
           type="text"
@@ -202,7 +197,7 @@ export default function PlacesFormPage() {
         />
         {preInput(
           "Place Type",
-          "Type of your place. should be name as room, hotel, flat"
+          "Type of your place. should be name as room, hotel, flat",
         )}
         <select
           name="placetype"
@@ -234,7 +229,7 @@ export default function PlacesFormPage() {
         />
         {preInput(
           "Check in&out times",
-          "add check in and out times, remember to have some time window for cleaning the room between guests"
+          "add check in and out times, remember to have some time window for cleaning the room between guests",
         )}
         <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
           <div>

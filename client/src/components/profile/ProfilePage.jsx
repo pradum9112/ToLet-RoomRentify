@@ -1,21 +1,20 @@
-import {useContext, useState,useEffect} from "react";
-import {UserContext} from "../../context/UserContext.jsx";
+import { useContext, useState, useEffect } from "react";
+import { UserContext } from "../../context/UserContext.jsx";
 import swal from "sweetalert";
-import {Link, Navigate, useParams,useNavigate} from "react-router-dom";
+import { Link, Navigate, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import PlacesPage from "./myhosting/PlacesPage";
 import AccountNav from "./AccountNav";
 import "../../assets/styles/profile.css";
 
-
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const [redirect,setRedirect] = useState(null);
-  const { islogin,setIslogin,username} = useContext(UserContext);
+  const [redirect, setRedirect] = useState(null);
+  const { islogin, setIslogin, username } = useContext(UserContext);
 
-  let {subpage} = useParams();
+  let { subpage } = useParams();
   if (subpage === undefined) {
-    subpage = 'profile';
+    subpage = "profile";
   }
 
   const logout = async () => {
@@ -23,7 +22,7 @@ export default function ProfilePage() {
     localStorage.removeItem("userInfo");
 
     swal({
-      title: "You have LoggedOut Successfully!" ,
+      title: "You have LoggedOut Successfully!",
       text: "Go to Login Page!",
       icon: "success",
       button: "Ok!",
@@ -34,9 +33,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     // if (!islogin) {
-      if (!(localStorage.getItem("userInfo"))) {
+    if (!localStorage.getItem("userInfo")) {
       swal({
-        title: "Login Required!" ,
+        title: "Login Required!",
         text: "Go to Login Page!",
         icon: "error",
         button: "Ok!",
@@ -47,17 +46,18 @@ export default function ProfilePage() {
 
   return (
     <div className="section">
-      <AccountNav/>
-      {subpage === 'profile' && (
+      <AccountNav />
+      {subpage === "profile" && (
         <div className="text-center max-w-lg mx-auto">
           {/* Logged in as {user.name} ({user.email})<br /> */}
-          Logged in as {username}<br />
-          <button onClick={logout} className="primary max-w-sm mt-2">Logout</button>
+          Logged in as {username}
+          <br />
+          <button onClick={logout} className="primary max-w-sm mt-2">
+            Logout
+          </button>
         </div>
       )}
-      {subpage === 'places' && (
-        <PlacesPage />
-      )}
+      {subpage === "places" && <PlacesPage />}
     </div>
   );
 }

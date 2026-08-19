@@ -5,7 +5,15 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import axios from "axios";
 import swal from "sweetalert";
-import { Box, Button, Typography, Stack, TextField, InputAdornment, IconButton } from "@mui/material";
+import {
+  Box,
+  Button,
+  Typography,
+  Stack,
+  TextField,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
 import WbSunnyIcon from "@mui/icons-material/WbSunny";
 import BedtimeIcon from "@mui/icons-material/Bedtime";
 import SearchIcon from "@mui/icons-material/Search";
@@ -56,13 +64,20 @@ export default function Map() {
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`,
       );
       const data = await response.json();
       if (data && data.length > 0) {
-        setSearchTarget({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+        setSearchTarget({
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon),
+        });
       } else {
-        swal("Not Found", "Location area not found. Please try another specific landmark.", "warning");
+        swal(
+          "Not Found",
+          "Location area not found. Please try another specific landmark.",
+          "warning",
+        );
       }
     } catch (err) {
       console.error("Search Query Error:", err);
@@ -70,14 +85,31 @@ export default function Map() {
   };
 
   return (
-    <Box sx={{ mx: 3, my: 3, display: "flex", flexDirection: "column", gap: 2 }}>
+    <Box
+      sx={{ mx: 3, my: 3, display: "flex", flexDirection: "column", gap: 2 }}
+    >
       {/* Header */}
-      <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems="center" gap={2}>
-        <Typography variant="h5" fontWeight="700" color={darkMode ? "#fff" : "#534173"}>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        alignItems="center"
+        gap={2}
+      >
+        <Typography
+          variant="h5"
+          fontWeight="700"
+          color={darkMode ? "#fff" : "#534173"}
+        >
           Explore Rental Properties
         </Typography>
 
-        <Stack direction="row" spacing={2} alignItems="center" component="form" onSubmit={handleSearch}>
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          component="form"
+          onSubmit={handleSearch}
+        >
           <TextField
             size="small"
             placeholder="Search city or area..."
@@ -99,7 +131,11 @@ export default function Map() {
             variant="contained"
             startIcon={darkMode ? <WbSunnyIcon /> : <BedtimeIcon />}
             onClick={() => setDarkMode(!darkMode)}
-            sx={{ backgroundColor: "#534173", textTransform: "none", whiteSpace: "nowrap" }}
+            sx={{
+              backgroundColor: "#534173",
+              textTransform: "none",
+              whiteSpace: "nowrap",
+            }}
           >
             {darkMode ? "Light" : "Dark"} Mode
           </Button>
@@ -115,7 +151,7 @@ export default function Map() {
           overflow: "hidden",
           boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
           border: "1px solid",
-          borderColor: darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
+          borderColor: darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
         }}
       >
         <MapContainer
@@ -130,7 +166,7 @@ export default function Map() {
                 ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                 : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
             }
-            attribution='&copy; OpenStreetMap contributors'
+            attribution="&copy; OpenStreetMap contributors"
           />
 
           <MapEngineFixer darkMode={darkMode} searchTarget={searchTarget} />
@@ -147,54 +183,108 @@ export default function Map() {
 
             if (isNaN(lat) || isNaN(lng)) return null;
 
-            let roomImage = "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=200&q=80";
-            if (point.photos && Array.isArray(point.photos) && point.photos.length > 0) {
-              roomImage = point.photos[0]; 
+            let roomImage =
+              "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=200&q=80";
+            if (
+              point.photos &&
+              Array.isArray(point.photos) &&
+              point.photos.length > 0
+            ) {
+              roomImage = point.photos[0];
             }
 
             // Per Night Pricing Math with 10% Discount
             const basePrice = Number(point.price) || 0;
-            const discount = Math.round(basePrice * 0.10);
+            const discount = Math.round(basePrice * 0.1);
             const discountedPrice = basePrice - discount;
 
             return (
               <Marker
                 key={point._id}
                 position={[lat, lng]}
-                icon={createPhotoIcon(roomImage)} 
+                icon={createPhotoIcon(roomImage)}
               >
                 <Popup maxWidth={240}>
-                  <div style={{ textAlign: "center", fontFamily: "sans-serif" }}>
+                  <div
+                    style={{ textAlign: "center", fontFamily: "sans-serif" }}
+                  >
                     <div style={{ position: "relative" }}>
                       <img
                         src={roomImage}
                         alt={point.title}
-                        style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "8px" }}
-                        onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=200&q=80"; }}
+                        style={{
+                          width: "100%",
+                          height: "120px",
+                          objectFit: "cover",
+                          borderRadius: "8px",
+                        }}
+                        onError={(e) => {
+                          e.target.src =
+                            "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=200&q=80";
+                        }}
                       />
                     </div>
 
-                    <h4 style={{ margin: "10px 0 4px 0", fontSize: "14px", fontWeight: "700" }}>{point.title}</h4>
-                    <p style={{ margin: "2px 0", fontSize: "12px" }}><strong>Type:</strong> {point.placetype}</p>
-                    
+                    <h4
+                      style={{
+                        margin: "10px 0 4px 0",
+                        fontSize: "14px",
+                        fontWeight: "700",
+                      }}
+                    >
+                      {point.title}
+                    </h4>
+                    <p style={{ margin: "2px 0", fontSize: "12px" }}>
+                      <strong>Type:</strong> {point.placetype}
+                    </p>
+
                     {/* Per Night Price with 10% Discount */}
                     <div style={{ margin: "4px 0 2px 0", fontSize: "12px" }}>
                       <strong>Price:</strong>{" "}
-                      <span style={{ fontSize: "14px", fontWeight: "700", color: "#2e7d32" }}>
+                      <span
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "700",
+                          color: "#2e7d32",
+                        }}
+                      >
                         ₹{discountedPrice}
                       </span>{" "}
-                      <span style={{ color: "red", textDecoration: "line-through", fontSize: "11px" }}>
+                      <span
+                        style={{
+                          color: "red",
+                          textDecoration: "line-through",
+                          fontSize: "11px",
+                        }}
+                      >
                         ₹{basePrice}
                       </span>{" "}
                       /night
                     </div>
 
-                    <div style={{ fontSize: "10px", fontWeight: "bold", color: "#2e7d32", marginBottom: "8px" }}>
+                    <div
+                      style={{
+                        fontSize: "10px",
+                        fontWeight: "bold",
+                        color: "#2e7d32",
+                        marginBottom: "8px",
+                      }}
+                    >
                       10% OFF Applied
                     </div>
 
                     {point.isbooked ? (
-                      <button disabled style={{ width: "100%", padding: "8px", background: "#ccc", border: "none", borderRadius: "6px", cursor: "not-allowed" }}>
+                      <button
+                        disabled
+                        style={{
+                          width: "100%",
+                          padding: "8px",
+                          background: "#ccc",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "not-allowed",
+                        }}
+                      >
                         Already Booked
                       </button>
                     ) : (
@@ -209,7 +299,7 @@ export default function Map() {
                           borderRadius: "6px",
                           fontSize: "12px",
                           fontWeight: "600",
-                          textAlign: "center"
+                          textAlign: "center",
                         }}
                       >
                         View Details

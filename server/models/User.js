@@ -6,28 +6,29 @@ const UserSchema = new mongoose.Schema({
   firstName: { type: String, default: null },
   lastName: { type: String, default: null },
   username: { type: String, default: null },
-  email: { 
-    type: String, 
-    unique: true, 
-    sparse: true,
-    default: null 
-  },
-  phone: { 
-    type: String, 
-    unique: true, 
-    sparse: true,
-    default: null 
-  },
-  pic: {
-    type: String,
-    default: "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
-  },
-  password: { type: String, default: null },
-  googleId: { 
+  email: {
     type: String,
     unique: true,
     sparse: true,
-    default: null 
+    default: null,
+  },
+  phone: {
+    type: String,
+    unique: true,
+    sparse: true,
+    default: null,
+  },
+  pic: {
+    type: String,
+    default:
+      "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
+  },
+  password: { type: String, default: null },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    default: null,
   },
   date: { type: Date, default: Date.now },
   saved: { type: Array, default: [] },

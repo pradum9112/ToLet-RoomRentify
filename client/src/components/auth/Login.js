@@ -61,7 +61,7 @@ const Login = () => {
         }),
       });
 
-      const json = await res.json(); 
+      const json = await res.json();
 
       if (json.success) {
         if (typeof window !== "undefined") {
@@ -166,11 +166,11 @@ const Login = () => {
       const json = await response.json();
 
       if (json.success) {
-     // ENCRYPT PASSWORD BEFORE SAVING TO LOCALSTORAGE
+        // ENCRYPT PASSWORD BEFORE SAVING TO LOCALSTORAGE
         if (rememberMe) {
           const encryptedPassword = CryptoJS.AES.encrypt(
             credentials.password,
-            SECRET_KEY
+            SECRET_KEY,
           ).toString();
 
           localStorage.setItem(
@@ -178,7 +178,7 @@ const Login = () => {
             JSON.stringify({
               email: credentials.email,
               password: encryptedPassword,
-            })
+            }),
           );
         } else {
           localStorage.removeItem("rememberUser");
@@ -222,34 +222,34 @@ const Login = () => {
     return valid;
   };
 
- /// DECRYPT AND AUTO-FILL EMAIL & PASSWORD ON LOAD
-useEffect(() => {
-  const savedUser = localStorage.getItem("rememberUser");
-  if (savedUser) {
-    try {
-      const parsedUser = JSON.parse(savedUser);
-      
-      if (parsedUser?.email && parsedUser?.password) {
-        // Decrypt password
-        const bytes = CryptoJS.AES.decrypt(parsedUser.password, SECRET_KEY);
-        const decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
+  /// DECRYPT AND AUTO-FILL EMAIL & PASSWORD ON LOAD
+  useEffect(() => {
+    const savedUser = localStorage.getItem("rememberUser");
+    if (savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
 
-        // Fill inputs directly
-        if (decryptedPassword) {
-          setCredentials((prev) => ({
-            ...prev,
-            email: parsedUser.email,
-            password: decryptedPassword,
-          }));
-          setRememberMe(true);
+        if (parsedUser?.email && parsedUser?.password) {
+          // Decrypt password
+          const bytes = CryptoJS.AES.decrypt(parsedUser.password, SECRET_KEY);
+          const decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
+
+          // Fill inputs directly
+          if (decryptedPassword) {
+            setCredentials((prev) => ({
+              ...prev,
+              email: parsedUser.email,
+              password: decryptedPassword,
+            }));
+            setRememberMe(true);
+          }
         }
+      } catch (e) {
+        console.error("Failed to decrypt saved credentials", e);
+        localStorage.removeItem("rememberUser");
       }
-    } catch (e) {
-      console.error("Failed to decrypt saved credentials", e);
-      localStorage.removeItem("rememberUser");
     }
-  }
-}, []);
+  }, []);
   // Initialize Google Button
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -261,7 +261,8 @@ useEffect(() => {
       if (window.google?.accounts) {
         google.accounts.id.initialize({
           // client_id:process.env.REACT_APP_GOOGLE_CLIENT_ID,
-          client_id:"556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
+          client_id:
+            "556182822054-s0199us6sdlu44chlejgodafbacs3h3s.apps.googleusercontent.com",
           callback: handleCallbackResponse,
           auto_select: false,
           cancel_on_tap_outside: false,
@@ -372,7 +373,10 @@ useEffect(() => {
                       checked={rememberMe}
                       onChange={handleRememberMeChange}
                     />
-                    <label className="form-check-label" htmlFor="rememberMeCheck">
+                    <label
+                      className="form-check-label"
+                      htmlFor="rememberMeCheck"
+                    >
                       Remember Me
                     </label>
                   </div>

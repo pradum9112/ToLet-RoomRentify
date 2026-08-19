@@ -17,9 +17,9 @@ export const createPhotoIcon = (imageUrl) => {
         <div class="room-pin-triangle"></div>
       </div>
     `,
-    className: "custom-clear-marker", 
-    iconSize: [46, 52],    
-    iconAnchor: [23, 52],  
-    popupAnchor: [0, -52]
+    className: "custom-clear-marker",
+    iconSize: [46, 52],
+    iconAnchor: [23, 52],
+    popupAnchor: [0, -52],
   });
 };

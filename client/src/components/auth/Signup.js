@@ -29,7 +29,14 @@ const CustomPhoneField = ({ value, onChange, error }) => (
       }}
     />
     {error && (
-      <span style={{ color: "red", fontSize: "small", display: "block", marginTop: "4px" }}>
+      <span
+        style={{
+          color: "red",
+          fontSize: "small",
+          display: "block",
+          marginTop: "4px",
+        }}
+      >
         {error}
       </span>
     )}
@@ -72,7 +79,8 @@ const Signup = (props) => {
     }
 
     const initGAuth = () => {
-      if (typeof window.google === "undefined" || !window.google.accounts) return;
+      if (typeof window.google === "undefined" || !window.google.accounts)
+        return;
 
       window.google.accounts.id.initialize({
         client_id:
@@ -293,8 +301,7 @@ const Signup = (props) => {
         navigate("/");
       } else {
         const msg = (json.message || "").toLowerCase();
-        const alreadyExists =
-          msg.includes("already") || msg.includes("exist");
+        const alreadyExists = msg.includes("already") || msg.includes("exist");
 
         swal({
           title: alreadyExists ? "Account Already Exists" : "Try Again!",

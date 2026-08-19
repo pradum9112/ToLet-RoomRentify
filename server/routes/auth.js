@@ -13,7 +13,8 @@ const Mailer = require("./Mailer");
 
 // POST /auth/signup/email/verify
 Router.post(
-  "/signup/email/verify",(req, res, next) => {
+  "/signup/email/verify",
+  (req, res, next) => {
     if (req.body.phone) {
       req.body.phone = String(req.body.phone).replace(/[\s-]/g, "");
     }
@@ -22,12 +23,16 @@ Router.post(
   [
     body("email", "Enter a valid email address").isEmail(),
     body("password", "Password cannot be blank").exists(),
-    body("password", "Enter a valid password of minimum 8 characters").isLength({
-      min: 8,
-    }),
+    body("password", "Enter a valid password of minimum 8 characters").isLength(
+      {
+        min: 8,
+      },
+    ),
     body("phone")
       .matches(/^\+[1-9]\d{7,14}$/)
-      .withMessage("Enter a valid international phone number with country code"),
+      .withMessage(
+        "Enter a valid international phone number with country code",
+      ),
     body("fname", "Enter a valid first name of minimum 2 characters").isLength({
       min: 2,
     }),
@@ -48,7 +53,6 @@ Router.post(
       });
     }
 
-    
     // Check if user already exists
     let user = await User.findOne({ email: req.body.email });
     if (user) {
@@ -104,7 +108,7 @@ Router.post(
       // Send welcome email (non-blocking)
       const msg = `Dear ${fullname},<br><br>Congratulations on taking the first step towards getting dream stays!`;
       Mailer(req.body.email, "Welcome to TO-LET site!", msg).catch((err) =>
-        console.error("Email error:", err)
+        console.error("Email error:", err),
       );
 
       return res.status(200).json({
@@ -118,16 +122,14 @@ Router.post(
         .status(500)
         .json({ success: false, message: "Some error occured" });
     }
-  }
+  },
 );
 
 // POST /auth/signup/email
 // Generates a 6-digit OTP, stores it in PassValidator, and emails it to the user.
 Router.post(
   "/signup/email",
-  [
-    body("email", "Enter a valid email address").isEmail(),
-  ],
+  [body("email", "Enter a valid email address").isEmail()],
   async (req, res) => {
     // 1. Validate input
     const errors = validationResult(req);
@@ -162,13 +164,13 @@ Router.post(
           authcode,
           createdAt: new Date(), // optional, useful if you add TTL expiry
         },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
+        { upsert: true, new: true, setDefaultsOnInsert: true },
       );
 
       // 5. Send the code by email (non-blocking, same pattern as your welcome email)
       const msg = `Your verification code is: <b>${authcode}</b><br><br>This code will expire shortly. If you did not request this, please ignore this email.`;
-      Mailer(email, "Your TO-LET RoomRentify verification code", msg).catch((err) =>
-        console.error("Email error:", err)
+      Mailer(email, "Your TO-LET RoomRentify verification code", msg).catch(
+        (err) => console.error("Email error:", err),
       );
 
       // 6. Respond
@@ -183,7 +185,7 @@ Router.post(
         message: "Some error occured",
       });
     }
-  }
+  },
 );
 
 // to authenticate a user while the user login  login is not required by user
@@ -225,11 +227,11 @@ Router.post(
           // FIXED PAYLOAD - Consistent with Google Login
           const payload = {
             user: {
-              id: user.id, 
+              id: user.id,
             },
           };
 
-          const authToken = jwt.sign(payload, JWT_SECRET,{ expiresIn: "1h" });
+          const authToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
 
           res.json({
             success: true,
@@ -286,7 +288,7 @@ Router.post(
         message: "No User with given email id exists.",
       });
     }
-    
+
     // sending otp for verification of email
     try {
       const trashCode = await PassValidator.findOneAndDelete({
@@ -295,7 +297,7 @@ Router.post(
 
       const authCode = Math.floor(100000 + Math.random() * 900000);
       authCodeCheck = authCode;
-      
+
       if (
         await Mailer(
           req.body.email,
@@ -352,10 +354,10 @@ Router.post(
       return res
         .status(400)
         .json({ success: false, error: "No user with given email id exists." });
-      }
+    }
 
-      try {
-        let storeAuthCode = await PassValidator.findOne({
+    try {
+      let storeAuthCode = await PassValidator.findOne({
         email: req.body.email,
       });
 
@@ -369,7 +371,7 @@ Router.post(
 
       if (storeAuthCode.authcode !== req.body.authcode) {
         return res
-        .status(400)
+          .status(400)
           .json({ message: "Invalid Verification code", success: false });
       }
 
@@ -392,7 +394,7 @@ Router.post(
               var ISToffSet = 330; //IST is 5:30; i.e. 60*5+30 = 330 in minutes
               offset = ISToffSet * 60 * 1000;
               var date = new Date(dateNI.getTime() + offset);
-              
+
               const dnt =
                 date.getDate() +
                 "-" +
@@ -409,7 +411,7 @@ Router.post(
               const msg = `Hi ${user.name},<br><br>Account deleted on${dnt}.<br><br>Regards<br>Authify`;
 
               Mailer(req.body.email, sub, msg);
-              
+
               await res.json({
                 success: true,
                 message: "Account deleted successfully",
@@ -429,8 +431,5 @@ Router.post(
     }
   },
 );
-
-       
-
 
 module.exports = Router;

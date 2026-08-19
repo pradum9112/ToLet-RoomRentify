@@ -17,12 +17,12 @@ const fetchUser = (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Please authenticate using a valid token"
+        message: "Please authenticate using a valid token",
       });
     }
 
     const data = jwt.verify(token, JWT_SECRET);
-    req.userId = data.user.id;   // Make sure your JWT payload has .user.id
+    req.userId = data.user.id; // Make sure your JWT payload has .user.id
 
     next();
   } catch (error) {
@@ -30,7 +30,7 @@ const fetchUser = (req, res, next) => {
     return res.status(401).json({
       success: false,
       message: "Invalid or expired token",
-      isExpired: true
+      isExpired: true,
     });
   }
 };
