@@ -13,7 +13,8 @@ function Hotel() {
   const [hotels, setHotels] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const authToken = localStorage.getItem("token");
-  const { islogin, setIslogin, setFilterData, filterData } = useContext(UserContext);
+  const { islogin, setIslogin, setFilterData, filterData } =
+    useContext(UserContext);
   const navigate = useNavigate();
 
   const [filter, setFilter] = useState({
@@ -267,7 +268,8 @@ function Hotel() {
                     <div className="text-center d-grid" style={{ gap: "6px" }}>
                       <h1>No Data Found</h1>
                       <p>
-                        Sorry, there is no data available to display at the moment.
+                        Sorry, there is no data available to display at the
+                        moment.
                       </p>
                       <a
                         href="#"
@@ -284,7 +286,7 @@ function Hotel() {
               hotels.map((hotel) => {
                 // 10% Discount Calculation Logic
                 const basePrice = Number(hotel.price) || 0;
-                const discount = Math.round(basePrice * 0.10);
+                const discount = Math.round(basePrice * 0.1);
                 const discountedPrice = basePrice - discount;
 
                 return (
@@ -365,11 +367,16 @@ function Hotel() {
                             {/* Struck-through Original Base Price */}
                             <span
                               className="text-danger text-sm"
-                              style={{ color: "red", textDecoration: "line-through" }}
+                              style={{
+                                color: "red",
+                                textDecoration: "line-through",
+                              }}
                             >
                               ₹{basePrice}
                             </span>
-                            <span className="ml-1 text-muted text-sm">/ night</span>
+                            <span className="ml-1 text-muted text-sm">
+                              / night
+                            </span>
                           </div>
 
                           {/* Explicit Green Color Offer Badge */}
@@ -381,7 +388,7 @@ function Hotel() {
                           </div>
 
                           <h6 className="text-success">{hotel.address}</h6>
-                          
+
                           <div className="d-flex flex-column mt-4">
                             {hotel.isbooked ? (
                               <button

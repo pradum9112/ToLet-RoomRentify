@@ -89,7 +89,9 @@ Router.post("/verify-payment", fetchUser, async (req, res) => {
       return res.status(400).json({ message: "Invalid payment signature" });
     }
 
-    const payment = await Payment.findOne({ razorpayOrderId: razorpay_order_id });
+    const payment = await Payment.findOne({
+      razorpayOrderId: razorpay_order_id,
+    });
     if (!payment) {
       return res.status(404).json({ message: "Payment not found" });
     }

@@ -361,7 +361,9 @@ function Flat() {
                         <div className="col-md-6 col-lg-3 border-sm-start-none border-start">
                           {/* Updated Daily Price Section */}
                           <div className="d-flex flex-row align-items-center mb-1">
-                            <h4 className="me-2 mb-0">₹{discountedDailyPrice}</h4>
+                            <h4 className="me-2 mb-0">
+                              ₹{discountedDailyPrice}
+                            </h4>
                             <span className="text-danger me-2">
                               <small>
                                 <s>₹{baseDailyPrice}</s>
@@ -425,10 +427,7 @@ function Flat() {
               </select>
             </div>
             <div className="grid-contols p-4 pt-0">
-              <button
-                disabled={currentPage === 1}
-                onClick={handlePreviousPage}
-              >
+              <button disabled={currentPage === 1} onClick={handlePreviousPage}>
                 Previous Page
               </button>
               <button

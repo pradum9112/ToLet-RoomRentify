@@ -31,7 +31,7 @@ import { url } from "../../utils/Constants";
 const ENDPOINT =
   window.location.hostname === "localhost"
     ? "http://localhost:5101"
-    :"https://tolet-roomrentify.onrender.com";
+    : "https://tolet-roomrentify.onrender.com";
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [messages, setMessages] = useState([]);
@@ -46,7 +46,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const cancelRef = useRef();
   const toast = useToast();
   const socketRef = useRef(null);
-  
+
   // Ref to always track latest selectedChat inside socket handlers
   const selectedChatCompareRef = useRef(null);
 
@@ -114,7 +114,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       if (activeChat && activeChat._id === deletedChatId) {
         setSelectedChat(null);
         setMessages([]);
-        toast({ title: "Chat deleted", status: "info", duration: 3000, isClosable: true });
+        toast({
+          title: "Chat deleted",
+          status: "info",
+          duration: 3000,
+          isClosable: true,
+        });
       }
       setFetchAgain((prev) => !prev);
     };
@@ -129,37 +134,37 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     };
   }, [currentUser?._id]);
 
-// SingleChat.jsx ke andar:
+  // SingleChat.jsx ke andar:
 
-// ==================== FETCH MESSAGES ====================
-const fetchMessages = async () => {
-  if (!selectedChat?._id) return;
+  // ==================== FETCH MESSAGES ====================
+  const fetchMessages = async () => {
+    if (!selectedChat?._id) return;
 
-  try {
-    setLoading(true);
-    const { data } = await axios.get(
-      `${url}/chats/message/${selectedChat._id}`,
-      { headers: { token: localStorage.getItem("token") } },
-    );
-    setMessages(data);
-    socketRef.current?.emit("join chat", selectedChat._id);
-  } catch (error) {
-    toast({ title: "Failed to load messages", status: "error" });
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
+      const { data } = await axios.get(
+        `${url}/chats/message/${selectedChat._id}`,
+        { headers: { token: localStorage.getItem("token") } },
+      );
+      setMessages(data);
+      socketRef.current?.emit("join chat", selectedChat._id);
+    } catch (error) {
+      toast({ title: "Failed to load messages", status: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-useEffect(() => {
-  if (selectedChat?._id) {
-    // 🟢 ADDED: Selected chat khulte hi us chat ke saare notifications clear kar do
-    setNotification((prev) =>
-      prev.filter((n) => n.chat?._id !== selectedChat._id)
-    );
+  useEffect(() => {
+    if (selectedChat?._id) {
+      // 🟢 ADDED: Selected chat khulte hi us chat ke saare notifications clear kar do
+      setNotification((prev) =>
+        prev.filter((n) => n.chat?._id !== selectedChat._id),
+      );
 
-    fetchMessages();
-  }
-}, [selectedChat?._id]);
+      fetchMessages();
+    }
+  }, [selectedChat?._id]);
 
   useEffect(() => {
     fetchMessages();

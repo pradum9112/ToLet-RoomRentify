@@ -5,17 +5,17 @@ const connectToMongo = require("./db");
 const cloudinary = require("cloudinary").v2;
 const cors = require("cors");
 const app = express();
-const morgan = require('morgan')
+const morgan = require("morgan");
 const chalk = require("chalk");
 
 const port = process.env.PORT || 5101;
 
 // Middleware
-app.use(express.static('public'));
+app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 
 // Connect to MongoDB
 connectToMongo();
@@ -36,23 +36,23 @@ app.get("/", (req, res) => {
     author: "Pradum Sonkar",
   });
 });
-app.use('/auth', require('./routes/auth'))
-app.use('/forgotpassword', require('./routes/forgotpass'));
-app.use('/oauth', require('./routes/oauth'));
-app.use('/testimonial', require('./routes/testimonial'))
+app.use("/auth", require("./routes/auth"));
+app.use("/forgotpassword", require("./routes/forgotpass"));
+app.use("/oauth", require("./routes/oauth"));
+app.use("/testimonial", require("./routes/testimonial"));
 
-app.use('/hosting',require('./routes/hosting'));
-app.use('/booking',require('./routes/booking'));
-app.use('/payment',require('./routes/payment'));
-app.use('/places',require('./routes/places'));
+app.use("/hosting", require("./routes/hosting"));
+app.use("/booking", require("./routes/booking"));
+app.use("/payment", require("./routes/payment"));
+app.use("/places", require("./routes/places"));
 
-app.use('/chats',require('./routes/chats'));
+app.use("/chats", require("./routes/chats"));
 
 // Start the server
 const server = app.listen(port, () => {
   console.log(
     chalk.blue.bold("🚀 Server started successfully on port: ") +
-    chalk.yellow.bold(port)
+      chalk.yellow.bold(port),
   );
 });
 
@@ -125,7 +125,9 @@ io.on("connection", (socket) => {
         }
 
         // Emit to personal room of other users
-        socket.in(user._id.toString()).emit("message recieved", newMessageRecieved);
+        socket
+          .in(user._id.toString())
+          .emit("message recieved", newMessageRecieved);
       });
     } catch (error) {
       console.log("Error in new message event:", error.message);

@@ -3,7 +3,6 @@ import Testimonial from "./Testimonial";
 import { url } from "../../utils/Constants";
 import swal from "sweetalert";
 
-
 const TestimonialSlider = () => {
   const [testimonials, setTestimonials] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -29,7 +28,7 @@ const TestimonialSlider = () => {
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentIndex(
-        (currentIndex) => (currentIndex + 1) % testimonials.length
+        (currentIndex) => (currentIndex + 1) % testimonials.length,
       );
     }, 10000);
 
@@ -44,13 +43,13 @@ const TestimonialSlider = () => {
 
   const handlePrevClick = () => {
     setCurrentIndex(
-      currentIndex === 0 ? testimonials.length - 1 : currentIndex - 1
+      currentIndex === 0 ? testimonials.length - 1 : currentIndex - 1,
     );
   };
 
   const handleNextClick = () => {
     setCurrentIndex(
-      currentIndex === testimonials.length - 1 ? 0 : currentIndex + 1
+      currentIndex === testimonials.length - 1 ? 0 : currentIndex + 1,
     );
   };
 

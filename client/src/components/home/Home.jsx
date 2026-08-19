@@ -116,92 +116,92 @@ const Home = () => {
 
   const getHotels = async () => {
     setIsLoading(true);
-    try{
-    const req = `${url}/places?page=1&size=10&address=${""}&placetype=hotel`;
+    try {
+      const req = `${url}/places?page=1&size=10&address=${""}&placetype=hotel`;
 
-    const response = await fetch(req, {
-      method: "GET",
-      mode: "cors",
-      referrerPolicy: "origin-when-cross-origin",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+      const response = await fetch(req, {
+        method: "GET",
+        mode: "cors",
+        referrerPolicy: "origin-when-cross-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
 
-    const responseData = await response.json();
-    if (response.status === 200) {
-      setHotels(responseData.placesdata);
+      const responseData = await response.json();
+      if (response.status === 200) {
+        setHotels(responseData.placesdata);
+      }
+    } catch (err) {
+      swal({
+        title: "Try Again!",
+        text: "server is down!",
+        icon: "error",
+        button: "Ok!",
+      });
     }
-  } catch (err) {
-    swal({
-      title: "Try Again!",
-      text: "server is down!",
-      icon: "error",
-      button: "Ok!",
-    });
-  }
-  setIsLoading(false);
+    setIsLoading(false);
   };
 
   const getRooms = async () => {
     setIsLoading(true);
-    try{
-    const req = `${url}/places?page=1&size=10&address=${""}&placetype=room`;
+    try {
+      const req = `${url}/places?page=1&size=10&address=${""}&placetype=room`;
 
-    const response = await fetch(req, {
-      method: "GET",
-      mode: "cors",
-      referrerPolicy: "origin-when-cross-origin",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+      const response = await fetch(req, {
+        method: "GET",
+        mode: "cors",
+        referrerPolicy: "origin-when-cross-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
 
-    const responseData = await response.json();
-    if (response.status === 200) {
-      setRooms(responseData.placesdata);
+      const responseData = await response.json();
+      if (response.status === 200) {
+        setRooms(responseData.placesdata);
+      }
+    } catch (err) {
+      swal({
+        title: "Try Again!",
+        text: "server is down!",
+        icon: "error",
+        button: "Ok!",
+      });
     }
-  } catch (err) {
-    swal({
-      title: "Try Again!",
-      text: "server is down!",
-      icon: "error",
-      button: "Ok!",
-    });
-  }
-  setIsLoading(false);
+    setIsLoading(false);
   };
 
   const getFlats = async () => {
     setIsLoading(true);
-    try{
-    const req = `${url}/places?page=1&size=10&address=${""}&placetype=flat`;
+    try {
+      const req = `${url}/places?page=1&size=10&address=${""}&placetype=flat`;
 
-    const response = await fetch(req, {
-      method: "GET",
-      mode: "cors",
-      referrerPolicy: "origin-when-cross-origin",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+      const response = await fetch(req, {
+        method: "GET",
+        mode: "cors",
+        referrerPolicy: "origin-when-cross-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
 
-    const responseData = await response.json();
-    if (response.status === 200) {
-      setFlats(responseData.placesdata);
+      const responseData = await response.json();
+      if (response.status === 200) {
+        setFlats(responseData.placesdata);
+      }
+    } catch (err) {
+      swal({
+        title: "Try Again!",
+        text: "server is down!",
+        icon: "error",
+        button: "Ok!",
+      });
     }
-  } catch (err) {
-    swal({
-      title: "Try Again!",
-      text: "server is down!",
-      icon: "error",
-      button: "Ok!",
-    });
-  }
-  setIsLoading(false);
+    setIsLoading(false);
   };
 
   // useEffect(() => {
@@ -236,15 +236,15 @@ const Home = () => {
         >
           <CircularProgress />
         </div>
-        ) : !rooms ? ( 
-          <div className="container mt-5">
+      ) : !rooms ? (
+        <div className="container mt-5">
           <div className="row justify-content-center">
             <div className="col-md-6">
-            <div className="text-center d-grid" style={{gap:"6px"}}>
-              <h1><strong>Error!</strong></h1>
-                <p>
-                  Sorry, Failed to Load !
-                </p>
+              <div className="text-center d-grid" style={{ gap: "6px" }}>
+                <h1>
+                  <strong>Error!</strong>
+                </h1>
+                <p>Sorry, Failed to Load !</p>
               </div>
             </div>
           </div>
@@ -272,15 +272,15 @@ const Home = () => {
         >
           <CircularProgress />
         </div>
-        ) : !hotels ? ( 
-          <div className="container mt-5">
+      ) : !hotels ? (
+        <div className="container mt-5">
           <div className="row justify-content-center">
             <div className="col-md-6">
-            <div className="text-center d-grid" style={{gap:"6px"}}>
-              <h1><strong>Error!</strong></h1>
-                <p>
-                  Sorry, Failed to Load !
-                </p>
+              <div className="text-center d-grid" style={{ gap: "6px" }}>
+                <h1>
+                  <strong>Error!</strong>
+                </h1>
+                <p>Sorry, Failed to Load !</p>
               </div>
             </div>
           </div>
@@ -306,17 +306,17 @@ const Home = () => {
             justifyContent: "center",
           }}
         >
-         <CircularProgress />
+          <CircularProgress />
         </div>
-        ) : !flats ? ( 
-          <div className="container mt-5">
+      ) : !flats ? (
+        <div className="container mt-5">
           <div className="row justify-content-center">
             <div className="col-md-6">
-            <div className="text-center d-grid" style={{gap:"6px"}}>
-              <h1><strong>Error!</strong></h1>
-                <p>
-                  Sorry, Failed to Load !
-                </p>
+              <div className="text-center d-grid" style={{ gap: "6px" }}>
+                <h1>
+                  <strong>Error!</strong>
+                </h1>
+                <p>Sorry, Failed to Load !</p>
               </div>
             </div>
           </div>

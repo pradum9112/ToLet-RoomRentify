@@ -8,7 +8,7 @@ Router.get("/", async (req, res) => {
     const testimonial = await Testimonial.find({});
     res.status(200).json(testimonial);
   } catch (error) {
-    res.status(500).json({ message: "Some error occured", success: false, });
+    res.status(500).json({ message: "Some error occured", success: false });
   }
 });
 
@@ -23,7 +23,7 @@ Router.post("/testimonialcreate", async (req, res) => {
     user_testimonial,
   });
   const storedata = await testimonials.save();
-  
+
   return res.status(201).json(testimonials);
 });
 

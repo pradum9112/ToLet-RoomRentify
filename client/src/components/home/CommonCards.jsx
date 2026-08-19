@@ -6,7 +6,6 @@ import { AiOutlineRight } from "react-icons/ai";
 import { UserContext } from "../../context/UserContext.jsx";
 
 const CommonCards = ({ images, heading, content, type, link }) => {
-
   const { setFilterData, filterData } = useContext(UserContext);
   const navigate = useNavigate();
 

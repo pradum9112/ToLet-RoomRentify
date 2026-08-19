@@ -244,7 +244,10 @@ function Saved() {
                 <div className="container mt-5">
                   <div className="row justify-content-center">
                     <div className="col-md-6">
-                      <div className="text-center d-grid" style={{ gap: "6px" }}>
+                      <div
+                        className="text-center d-grid"
+                        style={{ gap: "6px" }}
+                      >
                         <h1>
                           <strong>Error!</strong>
                         </h1>
@@ -257,7 +260,10 @@ function Saved() {
                 <div className="container mt-5">
                   <div className="row justify-content-center">
                     <div className="col-md-6">
-                      <div className="text-center d-grid" style={{ gap: "6px" }}>
+                      <div
+                        className="text-center d-grid"
+                        style={{ gap: "6px" }}
+                      >
                         <h1>No Data Found</h1>
                         <p>
                           Sorry, there is no data available to display at the
@@ -272,7 +278,10 @@ function Saved() {
                 </div>
               ) : (
                 saved.map((save) => (
-                  <div key={save._id} className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
+                  <div
+                    key={save._id}
+                    className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2"
+                  >
                     <div className="card-body px-4 py-4">
                       <div className="row">
                         <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">

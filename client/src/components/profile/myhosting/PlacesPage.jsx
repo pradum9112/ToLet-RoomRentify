@@ -116,7 +116,10 @@ export default function PlacesPage() {
           </div>
         ) : (
           places.map((place) => (
-            <div key={place._id} className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2">
+            <div
+              key={place._id}
+              className="shadow-0 border rounded-3 card mx-4 mt-4 mb-2"
+            >
               <div className="card-body px-4 py-4">
                 <div className="row">
                   <div className="col-md-12 col-lg-3 mb-4 mb-lg-0">

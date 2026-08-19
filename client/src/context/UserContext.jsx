@@ -21,42 +21,44 @@ export function UserContextProvider({ children }) {
 
   // Verify Token
   const checkToken = async () => {
-  const currentToken = localStorage.getItem("token");
-  if (!currentToken) {
-    setIslogin(false);
-    return false;
-  }
-
-  try {
-    const response = await fetch(`${url}/auth/verifyuser`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${currentToken}`,
-        "token": currentToken,        
-      },
-    });
-
-    const json = await response.json();
-
-    if (response.ok && json.success === true) {
-      setIslogin(true);
-      if (json.data) {
-        setUsername(`${json.data.firstName || ""} ${json.data.lastName || ""}`.trim());
-      }
-      return true;
-    } else {
-      localStorage.removeItem("token");
-      localStorage.removeItem("userInfo");
+    const currentToken = localStorage.getItem("token");
+    if (!currentToken) {
       setIslogin(false);
       return false;
     }
-  } catch (err) {
-    console.error("Token verification failed:", err);
-    setIslogin(false);
-    return false;
-  }
-};
+
+    try {
+      const response = await fetch(`${url}/auth/verifyuser`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${currentToken}`,
+          token: currentToken,
+        },
+      });
+
+      const json = await response.json();
+
+      if (response.ok && json.success === true) {
+        setIslogin(true);
+        if (json.data) {
+          setUsername(
+            `${json.data.firstName || ""} ${json.data.lastName || ""}`.trim(),
+          );
+        }
+        return true;
+      } else {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userInfo");
+        setIslogin(false);
+        return false;
+      }
+    } catch (err) {
+      console.error("Token verification failed:", err);
+      setIslogin(false);
+      return false;
+    }
+  };
 
   // Load user from localStorage
   const loadUserData = () => {
@@ -68,7 +70,8 @@ export function UserContextProvider({ children }) {
         setLoggedUser(parsed);
         setIslogin(true);
 
-        const name = parsed.username ||
+        const name =
+          parsed.username ||
           (parsed.data
             ? `${parsed.data.firstName || ""} ${parsed.data.lastName || ""}`.trim()
             : "");
@@ -81,9 +84,9 @@ export function UserContextProvider({ children }) {
 
   // Run on initial load
   useEffect(() => {
-  loadUserData();
-  checkToken();
-}, []);
+    loadUserData();
+    checkToken();
+  }, []);
   return (
     <UserContext.Provider
       value={{
@@ -119,4 +122,3 @@ export function UserContextProvider({ children }) {
     </UserContext.Provider>
   );
 }
-

@@ -16,7 +16,7 @@ function Error() {
           textAlign: "left",
           padding: "10% 0 10% 10%",
           width: "50%",
-          height: "600px"
+          height: "600px",
         }}
       >
         <img
@@ -60,7 +60,9 @@ function Error() {
             boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
             borderRadius: 8,
           }}
-        >Go To Homepage</button>
+        >
+          Go To Homepage
+        </button>
       </div>
       <div style={{ float: "left", width: "50%", background: "#fff" }}>
         <img

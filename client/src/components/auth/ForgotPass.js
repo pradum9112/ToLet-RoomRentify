@@ -127,10 +127,10 @@ const ForgotPass = (props) => {
         body: JSON.stringify({
           email: credentials.email,
           password: credentials.password,
-          authcode: credentials.authcode, 
+          authcode: credentials.authcode,
         }),
       });
-       
+
       const json = await response.json();
 
       if (json.success === true) {
@@ -144,7 +144,10 @@ const ForgotPass = (props) => {
       } else {
         swal({
           title: "Try Again!",
-          text: typeof json.message === "string" ? json.message : "Invalid OTP or request failed!",
+          text:
+            typeof json.message === "string"
+              ? json.message
+              : "Invalid OTP or request failed!",
           icon: "error",
           button: "Ok!",
         });
